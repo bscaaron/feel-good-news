@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webform Builder</title>
+    <!-- Quill.js - Free rich text editor, no API key required -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #0c2a4a;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .form-section {
+            padding: 24px;
+        }
+
+        .articles-container {
+            margin-bottom: 24px;
+        }
+
+        .article-group {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .article-group.dragging {
+            opacity: 0.5;
+            border-color: #0c2a4a;
+        }
+
+        .article-group:hover {
+            border-color: #0c2a4a;
+        }
+
+        .article-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .article-number {
+            font-weight: 700;
+            color: #0c2a4a;
+            font-size: 18px;
+        }
+
+        .article-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .drag-handle {
+            cursor: move;
+            padding: 8px;
+            color: #666;
+            font-size: 18px;
+            user-select: none;
+        }
+
+        .drag-handle:hover {
+            color: #0c2a4a;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #0c2a4a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0a1f3a;
+        }
+
+        .btn-danger {
+            background: #e5253a;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c41e2f;
+        }
+
+        .btn-secondary {
+            background: #666;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group label.required::after {
+            content: " *";
+            color: #e5253a;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0c2a4a;
+        }
+
+        .form-group .error {
+            color: #e5253a;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-group.has-error .error {
+            display: block;
+        }
+
+        .form-group.has-error input,
+        .form-group.has-error textarea {
+            border-color: #e5253a;
+        }
+
+        .gallery-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .gallery-item {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .gallery-item input {
+            flex: 1;
+        }
+
+        .submit-section {
+            padding: 24px;
+            background: #f9f9f9;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .output-section {
+            padding: 24px;
+            border-top: 2px solid #e0e0e0;
+            display: none;
+        }
+
+        .output-section.visible {
+            display: block;
+        }
+
+        .preview-container {
+            margin-bottom: 24px;
+        }
+
+        .preview-container h3 {
+            margin-bottom: 12px;
+            color: #0c2a4a;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+
+        .code-container {
+            margin-top: 24px;
+        }
+
+        .code-container h3 {
+            margin-bottom: 12px;
+            color: #0c2a4a;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .quill-editor {
+            min-height: 300px;
+            background: white;
+        }
+
+        .copy-btn {
+            background: #0c2a4a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .copy-btn:hover {
+            background: #0a1f3a;
+        }
+
+        .copy-btn.copied {
+            background: #28a745;
+        }
+
+        .add-article-btn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 20px;
+            background: #0c2a4a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-article-btn:hover {
+            background: #0a1f3a;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .article-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Webform Builder</h1>
+        </div>
+
+        <div class="form-section">
+            <div class="articles-container" id="articlesContainer">
+                <!-- Articles will be dynamically added here -->
+            </div>
+
+            <button type="button" class="add-article-btn" onclick="addArticle()">
+                + Add Article
+            </button>
+        </div>
+
+        <div class="submit-section">
+            <button type="button" class="btn btn-primary" onclick="generateOutput()">
+                Generate Output
+            </button>
+        </div>
+
+        <div class="output-section" id="outputSection">
+            <div class="preview-container">
+                <h3>Preview</h3>
+                <iframe id="previewFrame" class="preview-frame"></iframe>
+            </div>
+
+            <div class="code-container">
+                <div class="code-header">
+                    <h3>Generated HTML</h3>
+                    <button type="button" class="copy-btn" onclick="copyToClipboard()">
+                        Copy Code
+                    </button>
+                </div>
+                <div class="code-block">
+                    <code id="codeOutput"></code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let articles = [];
+        let articleCounter = 0;
+        let templateContent = '';
+        let draggedElement = null;
+        let quillEditors = {}; // Store Quill editor instances
+
+                                                                                                                                // Initialize template content (embedded to avoid CORS issues with file://)
+        function initializeTemplate() {
+            // Template content from output.html - embedded directly to avoid CORS issues
+            const templateString = "<meta charset=\"utf-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title></title>\n<meta name=\"description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:title\" content=\"Feel-Good News - ImpactLife\" /><meta property=\"og:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:site_name\" content=\"ImpactLife\" /><meta property=\"og:type\" content=\"article\" /><meta name=\"twitter:card\" content=\"summary_large_image\" /><meta name=\"twitter:title\" content=\"Feel-Good News - ImpactLife\" /><meta name=\"twitter:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" />\n<style type=\"text/css\">/* Enhanced Feel-Good News Layout */\n    :root{\n      --navy:#0c2a4a;\n      --red:#e5253a;\n      --yellow:#f4b000;\n      --gray-100:#f6f7f9;\n      --radius:18px;\n      --gap:24px;\n    }\n    *{box-sizing:border-box}\n    body{background:var(--gray-100);}\n\n    .wrapper{max-width:1120px;margin-inline:auto;padding:28px 18px 56px;}\n\n    /* Hero Section */\n    header.hero{\n      background:var(--navy);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:36px 24px 24px;\n      position:relative;\n      overflow:hidden;\n    }\n    .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}\n    .brand img{height:28px;width:auto}\n    .hero h1{margin:8px 0 10px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; font-size:5rem;}\n    h1:before{display:none;}\n    .date-badge{\n      position:absolute;right:18px;top:18px;\n      background:var(--red);color:#fff;\n      padding:10px 14px;border-radius:999px;\n      font-weight:700;font-size:14px\n    }\n    .stripe{position:absolute;left:0;bottom:0;width:100%;height:10px;background:var(--yellow);}\n\n    /* Main Content Grid - Masonry Style */\n    .main-grid{display:grid;gap:var(--gap);grid-template-columns:1fr 1fr;margin-top:var(--gap);}\n    .main-content{grid-column:1;}\n    .sidebar{grid-column:2;}\n    \n    /* Masonry Flow Classes */\n    .masonry-item{break-inside:avoid;margin-bottom:var(--gap);}\n    .masonry-item:last-child{margin-bottom:0;}\n    \n    /* Article Cards */\n    .card{\n      background:#fff;border-radius:var(--radius);\n      padding:22px 20px;box-shadow:0 2px 10px rgba(12,42,74,.06);\n      margin-bottom:var(--gap);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .card:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.15);\n      background:var(--navy);\n      color:#fff;\n    }\n    .card h2{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; color:var(--navy); margin-bottom:12px;}\n    .card:hover h2{color:#fff;}\n    .card blockquote{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; font-style:italic; color:var(--red); border-left:4px solid var(--red); padding-left:16px; margin:16px 0;}\n    .card:hover blockquote{color:#fff; border-left-color:#fff;}\n    \n    /* Links */\n    a{color:var(--red); text-decoration:none;}\n    a:hover{text-decoration:underline;}\n    .card:hover a{color:#fff;}\n    \n    /* Button Styling */\n    .btn{font-size:inherit; padding:.625em 1.5em;}\n    \n    /* Media Grid */\n    .media{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:14px}\n    .media img{width:100%;height:auto;border-radius:14px;display:block}\n    .media.single{grid-template-columns:1fr}\n    .masonry-image{width:100%; height:auto; display:block; max-width:500px; opacity:1; transition: opacity 1s ease-in-out;}\n    \n    /* Video Container */\n    .video-container{\n      position:relative;\n      width:100%;\n      height:0;\n      padding-bottom:56.25%; /* 16:9 aspect ratio */\n      overflow:hidden;\n      border-radius:14px;\n    }\n    .video-container iframe{\n      position:absolute;\n      top:0;\n      left:0;\n      width:100%;\n      height:100%;\n    }\n    \n    /* Sidebar */\n    .sidebar{display:flex;flex-direction:column;gap:var(--gap);}\n    \n    /* Bottom Spotlight Section */\n    .bottom-spotlight{\n      grid-column:1 / -1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n    }\n    \n    /* Thank The Donor Section */\n    .thank-donor-section{\n      grid-column:1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n      background:var(--yellow);\n      color:var(--navy);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .thank-donor-section:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(244,176,0,.3);\n      background:#e6a600;\n    }\n    .thank-donor-section h2{\n      color:var(--navy);\n    }\n    \n    /* Callout Sections */\n    .callout{\n      background:var(--navy);color:#fff;border-radius:var(--radius);\n      padding:22px 20px;\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .callout:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.3);\n      background:#0a1f3a;\n    }\n    .callout h2{color:#fff; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    .spotlight-grid{display:grid;gap:14px;grid-template-columns:1fr 1.15fr;align-items:start;}\n    .spotlight-photo{width:100%;height:auto;max-height:500px;border-radius:16px;display:block;object-fit:cover;}\n    .pill{display:inline-block;background:var(--red);color:#fff;font-weight:800;\n      padding:6px 12px;border-radius:999px;margin-bottom:10px;}\n\n    /* Special Sections */\n    .highlight-box{\n      background:linear-gradient(135deg, var(--red) 0%, #BB2031 100%);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:20px;\n      margin:var(--gap) 0;\n    }\n    .highlight-box h3{color:#fff; margin-bottom:12px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    \n    /* Footer */\n    footer{margin-top:var(--gap);background:#001a33;color:#dbe6f2;border-radius:var(--radius);}\n    footer .inner{padding:16px 20px;text-align:center;font-size:14px}\n\n    /* Responsive Design */\n    @media (max-width:980px){\n      .main-grid{grid-template-columns:1fr; display:flex; flex-direction:column;}\n      .main-content{grid-column:1; order:1; display:contents;}\n      .sidebar{grid-column:1; order:2; display:contents;}\n      .thank-donor-section{grid-column:1; order:3;}\n      .bottom-spotlight{grid-column:1; order:4;}\n      .spotlight-grid{grid-template-columns:1fr}\n      .media{grid-template-columns:1fr}\n      .date-badge{position:static;display:inline-block;margin-top:8px}\n    }\n    \n    @media (max-width:768px){\n      .wrapper{padding:18px 12px 36px;}\n      .hero{padding:24px 18px 18px;}\n      .card{padding:18px 16px;}\n      .callout{padding:18px 16px;}\n    }\n</style>\n<div class=\"wrapper\"><!-- HERO -->\n<header aria-labelledby=\"title\" class=\"hero\">\n<div class=\"date-badge\">October 24, 2025</div>\n\n<h1 id=\"title\" style=\"color:white;\">FEEL-GOOD NEWS</h1>\n\n<div class=\"stripe\"></div>\n</header>\n\n\n<!-- Main Content - Masonry Layout -->\n<div class=\"main-grid\">\n  <div class=\"main-content\">\n  \n    <!-- Left Column -->\n\n    <!-- Story 1 -->\n    <article class=\"card masonry-item\" style=\"order: 1;\">\n      <h2>$FORMVALUE_TITLE_01</h2>\n      <p>$FORMVALUE_BODY_CONTENT_01</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_01\" id=\"$FORMVALUE_IMAGE_ID_01\" src=\"$FORMVALUE_IMAGE_URL_01\" />\n      </div>\n    </article>\n\n    <!-- Story 3 -->\n    <article class=\"card masonry-item\" style=\"order: 3;\">\n      <h2>$FORMVALUE_TITLE_03</h2>\n      <p>$FORMVALUE_BODY_CONTENT_03</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_03\" id=\"$FORMVALUE_IMAGE_ID_03\" src=\"$FORMVALUE_IMAGE_URL_03\" />\n      </div>\n    </article>\n  </div>\n\n\n  <!-- Right Column -->\n\n  <div class=\"sidebar\">\n  \n    <!-- Story 2 -->\n    <article class=\"card masonry-item\" style=\"order: 2;\">\n      <h2>$FORMVALUE_TITLE_02</h2>\n      <p>$FORMVALUE_BODY_CONTENT_02</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_02\" id=\"$FORMVALUE_IMAGE_ID_02\" src=\"$FORMVALUE_IMAGE_URL_02\" />\n      </div>\n    </article>\n\n    <!-- Story 4 -->\n    <article class=\"card masonry-item\" style=\"order: 4;\">\n      <h2>$FORMVALUE_TITLE_04</h2>\n      <p>$FORMVALUE_BODY_CONTENT_04</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_04\" id=\"$FORMVALUE_IMAGE_ID_04\" src=\"$FORMVALUE_IMAGE_URL_04\" />\n        <div class=\"video-container\">\n          <iframe allowfullscreen=\"\" frameborder=\"0\" mozallowfullscreen=\"\" src=\"$FORMVALUE_VIDEO_URL_04\" webkitallowfullscreen=\"\"></iframe>\n        </div>\n      </div>\n    </article>\n\n  </div>\n\n</div>\n<!-- Employee Spotlight -->\n\n<section class=\"callout bottom-spotlight\" style=\"order: 5;\"><span class=\"pill\">EMPLOYEE SPOTLIGHT</span>\n\n<h2 style=\"text-align: center;\">Rose Szczurek</h2>\n\n<div class=\"spotlight-grid\">\n<div><img alt=\"Rose Szczurek, Reference Lab Technologist\" class=\"spotlight-photo\" src=\"/webres/Image/FGN/10242025/RoseSzczurek.jpg\" /></div>\n\n<div>\n<p><strong>Reference Lab Technologist</strong><br />\nalmost 13 years with the company<br />\nBlood Type: O+</p>\n\n<p><strong>What runs through your veins?</strong> Caffeine. A lot of caffeine.</p>\n\n<p><strong>What's your favorite thing about being part of our team?</strong> Knowing we are giving someone more time with their loved ones and friends (nothing pulls at my heart strings more than obstetrics cases).</p>\n\n<p><strong>When you're not at work, you can be found ___________.</strong> Running... A Lot. And eating (I constantly snack)- I'm a sucker for a good sour gummy candy or anything Haribo. But I also enjoy anything active and outdoor.</p>\n</div>\n</div>\n</section>\n</div>\n<!-- Footer -->\n\n<footer>\n<div class=\"inner\">\n<p>Feel-Good News is published every Friday to inspire + connect our ImpactLife team.</p>\n</div>\n</footer>\n</div>\n<script>\n  (function () {\n    // Form Gallery\n    const formImages = [\n      \"$FORMVALUE_IMAGE_GALLERY_URL_01\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_02\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_03\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_04\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_05\"\n    ];\n    let formIndex = 0;\n    const adamImg = document.getElementById(\"$FORMVALUE_IMAGE_GALLERY_ID_01\");\n    \n    if (formImg) {\n      setInterval(function () {\n        // fade out\n        formImg.style.opacity = 0;\n        \n        setTimeout(() => {\n          // change image once faded\n          formIndex = (formIndex + 1) % formImages.length;\n          formImg.src = formImages[formIndex];\n          // fade in\n          formImg.style.opacity = 1;\n        }, 1000); // matches transition duration\n      }, 5000); // switch every 5 seconds\n    }\n  })();\n" + '</' + 'script>' + "<script>\n  // Hide on-page banner and footer\n  document.addEventListener('DOMContentLoaded', function() {\n    // Hide any on-page banner divs\n    const banners = document.querySelectorAll('div[class*=\"banner\"], div[id*=\"banner\"], .banner, #banner');\n    banners.forEach(banner => {\n      if (banner) {\n        banner.style.display = 'none';\n      }\n    });\n    \n    // Hide footer with specific selector\n    const footer = document.querySelector('#aspnetForm > div.site_wrapper > footer');\n    if (footer) {\n      footer.style.display = 'none';\n    }\n    \n    // Also hide any other footer elements as backup\n    const allFooters = document.querySelectorAll('footer');\n    allFooters.forEach(footer => {\n      if (footer && !footer.classList.contains('inner')) {\n        footer.style.display = 'none';\n      }\n    });\n    \n    // Set specific element width to 100%\n    const targetElement = document.querySelector('#main > div.content.clearfix > div > div > div.group_2of3.first');\n    if (targetElement) {\n      targetElement.style.width = '100%';\n    }\n    \n    // Hide and remove sizing from specific elements\n    const firstChild = document.querySelector('#main > div.content.clearfix > div > div > div:nth-child(1)');\n    if (firstChild) {\n      firstChild.style.display = 'none';\n      firstChild.style.width = '0';\n      firstChild.style.height = '0';\n      firstChild.style.margin = '0';\n      firstChild.style.padding = '0';\n    }\n    \n    // Hide navigation\n    const nav = document.querySelector('#main > nav');\n    if (nav) {\n      nav.style.display = 'none';\n    }\n  }); \n" + '</' + 'script>' + "<script>\n(function () {\n  var NEW_NAME = \"ImpactLife\";\n  var OLD_NAME = \"MVRBC\";\n\n  // --- 1) Update JSON-LD (application/ld+json) ---\n  function mutateNames(obj) {\n    if (!obj || typeof obj !== \"object\") return;\n    if (Array.isArray(obj)) {\n      obj.forEach(mutateNames);\n      return;\n    }\n    // Replace exact \"MVRBC\" in common places (and anywhere 'name' equals it)\n    if (typeof obj.name === \"string\" && obj.name.trim() === OLD_NAME) {\n      obj.name = NEW_NAME;\n    }\n    if (obj.author && typeof obj.author === \"object\") {\n      if (typeof obj.author.name === \"string\" && obj.author.name.trim() === OLD_NAME) {\n        obj.author.name = NEW_NAME;\n      }\n    }\n    if (obj.publisher && typeof obj.publisher === \"object\") {\n      if (typeof obj.publisher.name === \"string\" && obj.publisher.name.trim() === OLD_NAME) {\n        obj.publisher.name = NEW_NAME;\n      }\n    }\n    // Recurse through all properties\n    Object.keys(obj).forEach(function (k) {\n      if (obj[k] && typeof obj[k] === \"object\") mutateNames(obj[k]);\n    });\n  }\n\n  Array.prototype.forEach.call(\n    document.querySelectorAll('script[type=\"application/ld+json\"]'),\n    function (node) {\n      try {\n        // Some sites embed minified JSON; keep formatting minimal on write-back\n        var data = JSON.parse(node.textContent.trim());\n        mutateNames(data);\n        node.textContent = JSON.stringify(data);\n      } catch (e) {\n        // Ignore scripts that aren't valid JSON\n      }\n    }\n  );\n\n  // --- 2) (Optional) Replace visible text \"MVRBC\" with \"ImpactLife\" ---\n  // Comment out this block if you only want the JSON-LD change.\n  (function replaceVisibleText() {\n    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {\n      acceptNode: function (n) {\n        // Skip empty/whitespace text nodes\n        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;\n        // Skip text under these elements\n        var p = n.parentNode;\n        while (p) {\n          var tag = (p.tagName || \"\").toLowerCase();\n          if (tag === \"script\" || tag === \"style\" || tag === \"noscript\" || tag === \"textarea\") {\n            return NodeFilter.FILTER_REJECT;\n          }\n          p = p.parentNode;\n        }\n        return NodeFilter.FILTER_ACCEPT;\n      }\n    });\n\n    var re = new RegExp(\"\\\\b\" + OLD_NAME.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\") + \"\\\\b\", \"g\");\n    var node;\n    while ((node = walker.nextNode())) {\n      if (re.test(node.nodeValue)) {\n        node.nodeValue = node.nodeValue.replace(re, NEW_NAME);\n      }\n    }\n   })();\n })();\n " + '</' + 'script>' + "<script>\n // Override schema.org data for social media previews\n (function() {\n   // Update any existing JSON-LD schema\n   const jsonLdScripts = document.querySelectorAll('script[type=\"application/ld+json\"]');\n   jsonLdScripts.forEach(script => {\n     try {\n       const data = JSON.parse(script.textContent);\n       if (data.publisher && data.publisher.name === 'MVRBC') {\n         data.publisher.name = 'ImpactLife';\n       }\n       if (data.author && data.author.name === 'MVRBC') {\n         data.author.name = 'ImpactLife';\n       }\n       if (data.name && data.name.includes('MVRBC')) {\n         data.name = data.name.replace(/MVRBC/g, 'ImpactLife');\n       }\n       script.textContent = JSON.stringify(data);\n     } catch (e) {\n       // Ignore invalid JSON\n     }\n   });\n   \n   // Add new schema to override any global schema\n   const newSchema = {\n     \"@context\": \"https://schema.org\",\n     \"@type\": \"Article\",\n     \"headline\": \"Feel-Good News - ImpactLife\",\n     \"description\": \"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\",\n     \"publisher\": {\n       \"@type\": \"Organization\",\n       \"name\": \"ImpactLife\",\n       \"url\": \"https://www.bloodcenter.org\"\n     },\n     \"author\": {\n       \"@type\": \"Organization\", \n       \"name\": \"ImpactLife\"\n     },\n     \"datePublished\": \"2025-10-24\",\n     \"dateModified\": \"2025-10-24\"\n   };\n   \n   const schemaScript = document.createElement('script');\n   schemaScript.type = 'application/ld+json';\n   schemaScript.textContent = JSON.stringify(newSchema);\n   document.head.appendChild(schemaScript);\n })();\n " + '</' + 'script>' + "";
+            templateContent = templateString;
+        }
+
+// Initialize - add first article
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                initializeTemplate();
+                addArticle();
+                setupDragDrop();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                alert('Error initializing form. Please check the console for details.');
+            }
+        });
+
+        function addArticle() {
+            try {
+                console.log('addArticle called');
+                const articleId = 'article-' + articleCounter++;
+                const article = {
+                    id: articleId,
+                    title: '',
+                    body: '',
+                    imageUrl: '',
+                    imageAlt: '',
+                    videoUrl: '',
+                    galleryUrls: []
+                };
+                articles.push(article);
+                console.log('Article added, total articles:', articles.length);
+
+                renderArticles();
+                
+                // Initialize Quill after a short delay to ensure DOM is ready
+                setTimeout(function() {
+                    initQuill(articleId);
+                }, 100);
+                
+                setupDragDrop();
+            } catch (error) {
+                console.error('Error adding article:', error);
+                alert('Error adding article: ' + error.message);
+            }
+        }
+
+        function removeArticle(index) {
+            if (articles.length <= 1) {
+                alert('You must have at least one article.');
+                return;
+            }
+
+            const articleId = articles[index].id;
+            if (quillEditors[articleId]) {
+                quillEditors[articleId] = null;
+                delete quillEditors[articleId];
+            }
+
+            articles.splice(index, 1);
+            renderArticles();
+            setupDragDrop();
+            
+            // Reinitialize Quill for remaining articles
+            articles.forEach((art, idx) => {
+                initQuill(art.id);
+            });
+        }
+
+        function addGalleryImage(articleIndex) {
+            articles[articleIndex].galleryUrls.push('');
+            renderArticles();
+            initQuill(articles[articleIndex].id);
+        }
+
+        function removeGalleryImage(articleIndex, imageIndex) {
+            articles[articleIndex].galleryUrls.splice(imageIndex, 1);
+            renderArticles();
+            initQuill(articles[articleIndex].id);
+        }
+
+        function renderArticles() {
+            const container = document.getElementById('articlesContainer');
+            if (!container) {
+                console.error('articlesContainer not found!');
+                return;
+            }
+            container.innerHTML = '';
+
+            articles.forEach((article, index) => {
+                const articleDiv = document.createElement('div');
+                articleDiv.className = 'article-group';
+                articleDiv.id = article.id;
+                articleDiv.draggable = true;
+
+                const order = index + 1;
+                const column = order % 2 === 1 ? 'Left' : 'Right';
+
+                // Build gallery HTML separately
+                var galleryHtml = '';
+                article.galleryUrls.forEach(function(url, imgIndex) {
+                    galleryHtml += '<div class="gallery-item">';
+                    galleryHtml += '<input type="text" value="' + escapeHtml(url) + '" oninput="updateGalleryImage(' + index + ', ' + imgIndex + ', this.value)" placeholder="Enter gallery image URL">';
+                    galleryHtml += '<button type="button" class="btn btn-danger btn-small" onclick="removeGalleryImage(' + index + ', ' + imgIndex + ')">Remove</button>';
+                    galleryHtml += '</div>';
+                });
+
+                // Build HTML using string concatenation to avoid template literal parsing issues
+                var html = '';
+                html += '<div class="article-header">';
+                html += '<div><span class="article-number">Article ' + order + ' (' + column + ' Column)</span></div>';
+                html += '<div class="article-actions">';
+                html += '<span class="drag-handle" title="Drag to reorder">⋮⋮</span>';
+                html += '<button type="button" class="btn btn-danger btn-small" onclick="removeArticle(' + index + ')">Remove</button>';
+                html += '</div></div>';
+                html += '<div class="form-group"><label class="required">Title</label>';
+                html += '<input type="text" id="title-' + article.id + '" value="' + escapeHtml(article.title) + '" oninput="updateArticle(' + index + ', &quot;title&quot;, this.value)" placeholder="Enter article title">';
+                html += '<div class="error">Title is required</div></div>';
+                html += '<div class="form-group"><label class="required">Body Content</label>';
+                html += '<div id="body-' + article.id + '" class="quill-editor">' + escapeHtml(article.body) + '</div>';
+                html += '<div class="error">Body content is required</div></div>';
+                html += '<div class="form-group"><label>Image URL</label>';
+                html += '<input type="text" id="imageUrl-' + article.id + '" value="' + escapeHtml(article.imageUrl) + '" oninput="updateArticle(' + index + ', &quot;imageUrl&quot;, this.value); validateImageAlt(' + index + ')" placeholder="Enter image URL">';
+                html += '</div>';
+                html += '<div class="form-group"><label id="imageAltLabel-' + article.id + '">Image Alt Text</label>';
+                html += '<input type="text" id="imageAlt-' + article.id + '" value="' + escapeHtml(article.imageAlt) + '" oninput="updateArticle(' + index + ', &quot;imageAlt&quot;, this.value)" placeholder="Enter image alt text">';
+                html += '<div class="error">Image Alt Text is required when Image URL is provided</div></div>';
+                html += '<div class="form-group"><label>Video URL</label>';
+                html += '<input type="text" id="videoUrl-' + article.id + '" value="' + escapeHtml(article.videoUrl) + '" oninput="updateArticle(' + index + ', &quot;videoUrl&quot;, this.value)" placeholder="Enter video URL (YouTube, Vimeo, etc.)">';
+                html += '</div>';
+                html += '<div class="gallery-section">';
+                html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">';
+                html += '<label style="margin: 0;">Gallery Images</label>';
+                html += '<button type="button" class="btn btn-secondary btn-small" onclick="addGalleryImage(' + index + ')">+ Add Gallery Image</button>';
+                html += '</div>';
+                html += '<div id="gallery-' + article.id + '">' + galleryHtml + '</div>';
+                html += '</div>';
+                
+                articleDiv.innerHTML = html;
+
+                container.appendChild(articleDiv);
+            });
+        }
+
+        function updateArticle(index, field, value) {
+            articles[index][field] = value;
+            validateForm();
+        }
+
+        function updateGalleryImage(articleIndex, imageIndex, value) {
+            articles[articleIndex].galleryUrls[imageIndex] = value;
+        }
+
+        function validateImageAlt(index) {
+            const article = articles[index];
+            const imageUrlInput = document.getElementById('imageUrl-' + article.id);
+            const imageAltInput = document.getElementById('imageAlt-' + article.id);
+            const imageAltLabel = document.getElementById('imageAltLabel-' + article.id);
+            const formGroup = imageAltInput.closest('.form-group');
+
+            if (imageUrlInput.value.trim()) {
+                imageAltLabel.classList.add('required');
+                if (!imageAltInput.value.trim()) {
+                    formGroup.classList.add('has-error');
+                } else {
+                    formGroup.classList.remove('has-error');
+                }
+            } else {
+                imageAltLabel.classList.remove('required');
+                formGroup.classList.remove('has-error');
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+
+            articles.forEach((article, index) => {
+                const titleInput = document.getElementById('title-' + article.id);
+                const bodyInput = document.getElementById('body-' + article.id);
+                const imageUrlInput = document.getElementById('imageUrl-' + article.id);
+                const imageAltInput = document.getElementById('imageAlt-' + article.id);
+
+                // Validate title
+                const titleGroup = titleInput.closest('.form-group');
+                if (!article.title.trim()) {
+                    titleGroup.classList.add('has-error');
+                    isValid = false;
+                } else {
+                    titleGroup.classList.remove('has-error');
+                }
+
+                // Validate body
+                const bodyGroup = document.getElementById('body-' + article.id).closest('.form-group');
+                let bodyContent = '';
+                if (quillEditors[article.id]) {
+                    bodyContent = quillEditors[article.id].root.innerHTML;
+                } else {
+                    const bodyElement = document.getElementById('body-' + article.id);
+                    bodyContent = bodyElement ? bodyElement.innerHTML : '';
+                }
+
+                if (!bodyContent.trim()) {
+                    bodyGroup.classList.add('has-error');
+                    isValid = false;
+                } else {
+                    bodyGroup.classList.remove('has-error');
+                }
+
+                // Validate image alt if image URL exists
+                validateImageAlt(index);
+            });
+
+            return isValid;
+        }
+
+        function initQuill(articleId) {
+            // Wait for Quill to be available
+            if (typeof Quill === 'undefined') {
+                console.warn('Quill not loaded yet, retrying...');
+                setTimeout(function() {
+                    initQuill(articleId);
+                }, 500);
+                return;
+            }
+            
+            try {
+                const editorId = 'body-' + articleId;
+                const editorElement = document.getElementById(editorId);
+                
+                if (!editorElement) {
+                    console.warn('Editor element not found:', editorId);
+                    return;
+                }
+                
+                // Check if already initialized
+                if (quillEditors[articleId]) {
+                    return;
+                }
+                
+                // Create Quill instance
+                const quill = new Quill(editorElement, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic'],
+                            ['link'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }]
+                        ]
+                    },
+                    placeholder: 'Enter article body content...'
+                });
+                
+                // Store editor instance
+                quillEditors[articleId] = quill;
+                
+                // Update article body on change
+                quill.on('text-change', function() {
+                    const index = articles.findIndex(function(a) {
+                        return a.id === articleId;
+                    });
+                    if (index !== -1) {
+                        articles[index].body = quill.root.innerHTML;
+                        validateForm();
+                    }
+                });
+                
+                // Set initial content if exists
+                const article = articles.find(function(a) {
+                    return a.id === articleId;
+                });
+                if (article && article.body) {
+                    quill.root.innerHTML = article.body;
+                }
+            } catch (error) {
+                console.error('Error initializing Quill:', error);
+            }
+        }
+
+        function slugify(text) {
+            return text
+                .toString()
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function convertToEmbedUrl(url) {
+            if (!url || !url.trim()) {
+                return url;
+            }
+            
+            url = url.trim();
+            
+            // YouTube URL conversion
+            // Match: youtube.com/watch?v=VIDEO_ID or youtube.com/watch?feature=...&v=VIDEO_ID
+            let youtubeMatch = url.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]+)/);
+            if (youtubeMatch) {
+                return 'https://www.youtube.com/embed/' + youtubeMatch[1];
+            }
+            
+            // Vimeo URL conversion
+            // Match: vimeo.com/VIDEO_ID or player.vimeo.com/video/VIDEO_ID
+            let vimeoMatch = url.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/);
+            if (vimeoMatch) {
+                return 'https://player.vimeo.com/video/' + vimeoMatch[1];
+            }
+            
+            // If already in embed format or unknown format, return as-is
+            return url;
+        }
+
+        function loadTemplate() {
+            // Template is now embedded directly - no need to fetch
+            // This function kept for backwards compatibility but does nothing
+        }
+
+        function generateOutput() {
+            if (!validateForm()) {
+                alert('Please fix validation errors before generating output.');
+                return;
+            }
+
+            if (!templateContent) {
+                alert('Template not loaded yet. Please wait a moment and try again.');
+                return;
+            }
+
+            let output = templateContent;
+
+            // Collect all gallery URLs from all articles
+            const allGalleryUrls = [];
+            articles.forEach(article => {
+                article.galleryUrls.forEach(url => {
+                    if (url.trim()) {
+                        allGalleryUrls.push(url.trim());
+                    }
+                });
+            });
+
+            // Get first article's image ID for gallery script
+            let firstImageId = '';
+            if (articles.length > 0 && articles[0].title.trim()) {
+                firstImageId = slugify(articles[0].title);
+            }
+
+            // Remove unused article blocks FIRST (before placeholder replacement)
+            // This removes placeholder articles that don't have values
+            // Remove articles from Story 01 to Story 99 that aren't being used
+            for (let i = articles.length + 1; i <= 99; i++) {
+                const num = String(i).padStart(2, '0');
+                // Match article comment and everything until closing article tag (including whitespace/newlines)
+                // Use a more robust pattern that handles whitespace variations
+                const articleRegexPattern = '<!-- Story ' + num + ' -->[\\s\\S]*?<\\/article>\\s*';
+                const articleRegex = new RegExp(articleRegexPattern, 'g');
+                output = output.replace(articleRegex, '');
+            }
+            
+            // Also remove any articles that still have placeholder values (in case removal above missed some)
+            // This is a safety net for articles that might have been partially filled
+            const placeholderPattern = '<article[^>]*>[\\s\\S]*?\\$FORMVALUE_TITLE_[\\d]+[\\s\\S]*?<\\/article>';
+            output = output.replace(new RegExp(placeholderPattern, 'g'), '');
+            
+            // Clean up any empty article tags or whitespace-only articles
+            output = output.replace(/<article[^>]*>\s*<\/article>/g, '');
+            output = output.replace(/<article[^>]*>\s*<h2>\s*<\/h2>\s*<\/article>/g, '');
+
+            // Process each article
+            articles.forEach(function(article, index) {
+                const articleNumber = String(index + 1).padStart(2, '0');
+                const order = index + 1;
+                const imageId = article.title.trim() ? slugify(article.title) : '';
+
+                // Get body content from Quill or div
+                let bodyContent = '';
+                if (quillEditors[article.id]) {
+                    bodyContent = quillEditors[article.id].root.innerHTML;
+                } else {
+                    const bodyElement = document.getElementById('body-' + article.id);
+                    bodyContent = bodyElement ? bodyElement.innerHTML : '';
+                }
+
+                // Replace placeholders
+                const titlePattern = '\\$FORMVALUE_TITLE_' + articleNumber;
+                const bodyPattern = '\\$FORMVALUE_BODY_CONTENT_' + articleNumber;
+                const imageUrlPattern = '\\$FORMVALUE_IMAGE_URL_' + articleNumber;
+                const imageAltPattern = '\\$FORMVALUE_IMAGE_ALT_' + articleNumber;
+                const videoUrlPattern = '\\$FORMVALUE_VIDEO_URL_' + articleNumber;
+                const imageIdPattern = '\\$FORMVALUE_IMAGE_ID_' + articleNumber;
+                
+                output = output.replace(new RegExp(titlePattern, 'g'), escapeHtml(article.title));
+                output = output.replace(new RegExp(bodyPattern, 'g'), bodyContent);
+                
+                // Only replace image/video placeholders if they have values, otherwise remove the entire tag/element
+                if (article.imageUrl.trim()) {
+                    output = output.replace(new RegExp(imageUrlPattern, 'g'), escapeHtml(article.imageUrl));
+                    output = output.replace(new RegExp(imageAltPattern, 'g'), escapeHtml(article.imageAlt));
+                    output = output.replace(new RegExp(imageIdPattern, 'g'), imageId);
+                } else {
+                    // Remove empty image tags - match img tag with the placeholder URL
+                    const emptyImagePattern = '<img[^>]*src="\\$FORMVALUE_IMAGE_URL_' + articleNumber + '"[^>]*\\s*/>';
+                    output = output.replace(new RegExp(emptyImagePattern, 'g'), '');
+                    // Also remove the image alt and id placeholders
+                    output = output.replace(new RegExp(imageAltPattern, 'g'), '');
+                    output = output.replace(new RegExp(imageIdPattern, 'g'), '');
+                    output = output.replace(new RegExp(imageUrlPattern, 'g'), '');
+                }
+                
+                if (article.videoUrl.trim()) {
+                    // Convert video URL to embed format
+                    const embedUrl = convertToEmbedUrl(article.videoUrl);
+                    output = output.replace(new RegExp(videoUrlPattern, 'g'), escapeHtml(embedUrl));
+                } else {
+                    // Remove empty video containers - match video-container div with placeholder URL
+                    const emptyVideoPattern = '<div[^>]*class="video-container"[^>]*>\\s*<iframe[^>]*src="\\$FORMVALUE_VIDEO_URL_' + articleNumber + '"[^>]*>\\s*</iframe>\\s*</div>';
+                    output = output.replace(new RegExp(emptyVideoPattern, 'g'), '');
+                    // Also remove just the placeholder URL
+                    output = output.replace(new RegExp(videoUrlPattern, 'g'), '');
+                }
+
+                // Update article order in template - skip this as we rebuild the structure anyway
+                // This section is kept for backwards compatibility but won't be used
+            });
+
+            // Clean up any empty media containers that might have been left after placeholder replacement
+            // Remove empty image tags (img tags with empty or missing src)
+            output = output.replace(/<img[^>]*src=""[^>]*\s*\/?>/g, '');
+            output = output.replace(/<img[^>]*src="\$FORMVALUE_IMAGE_URL[^"]*"[^>]*\s*\/?>/g, '');
+            // Remove empty video containers
+            output = output.replace(/<div[^>]*class="video-container"[^>]*>\s*<iframe[^>]*src=""[^>]*>.*?<\/iframe>\s*<\/div>/g, '');
+            output = output.replace(/<div[^>]*class="video-container"[^>]*>\s*<iframe[^>]*src="\$FORMVALUE_VIDEO_URL[^"]*"[^>]*>.*?<\/iframe>\s*<\/div>/g, '');
+            // Remove empty media divs
+            output = output.replace(/<div[^>]*class="media[^"]*"[^>]*>\s*<\/div>/g, '');
+
+            // Handle gallery URLs in script - only include if there are gallery URLs
+            if (allGalleryUrls.length > 0) {
+                // Only process gallery script if there are gallery URLs
+                let galleryUrlsString = allGalleryUrls.map(function(url) {
+                    return '"' + escapeHtml(url) + '"';
+                }).join(',\n      ');
+                
+                // Find and replace the formImages array
+                const formImagesStart = output.indexOf('const formImages = [');
+                const formImagesEnd = output.indexOf('];', formImagesStart);
+                if (formImagesStart !== -1 && formImagesEnd !== -1) {
+                    const before = output.substring(0, formImagesStart);
+                    const after = output.substring(formImagesEnd + 2);
+                    output = before + 'const formImages = [\n      ' + galleryUrlsString + '\n    ];' + after;
+                }
+
+                // Update gallery image ID reference
+                if (firstImageId) {
+                    output = output.replace(/\$FORMVALUE_IMAGE_GALLERY_ID_01/g, firstImageId);
+                    // Fix the template bug: adamImg vs formImg
+                    output = output.replace(/const adamImg = document\.getElementById/, 'const formImg = document.getElementById');
+                }
+            } else {
+                // Remove the entire gallery script block if there are no gallery URLs
+                // Find the script block containing "Form Gallery"
+                const formGalleryMarker = '// Form Gallery';
+                const formGalleryIndex = output.indexOf(formGalleryMarker);
+                if (formGalleryIndex !== -1) {
+                    // Find the opening <script> tag before this (go backwards from the marker)
+                    let scriptStart = output.lastIndexOf('<script>', formGalleryIndex);
+                    // If not found, try searching for the script tag that contains this marker
+                    if (scriptStart === -1) {
+                        // Search backwards more carefully
+                        let searchPos = formGalleryIndex;
+                        while (searchPos > 0 && scriptStart === -1) {
+                            searchPos = output.lastIndexOf('<script>', searchPos - 1);
+                            if (searchPos !== -1) {
+                                // Check if this script tag contains our marker
+                                const scriptEndTag = '</' + 'script>';
+                                const nextScriptEnd = output.indexOf(scriptEndTag, searchPos);
+                                if (nextScriptEnd > formGalleryIndex) {
+                                    scriptStart = searchPos;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Find the closing script tag after the marker
+                    const scriptEndTag = '</' + 'script>';
+                    const scriptEnd = output.indexOf(scriptEndTag, formGalleryIndex);
+                    
+                    if (scriptStart !== -1 && scriptEnd !== -1) {
+                        // Remove the entire script block
+                        output = output.substring(0, scriptStart) + output.substring(scriptEnd + 9);
+                    }
+                }
+            }
+
+            // Note: Unused article blocks were already removed above, before placeholder replacement
+
+            // Update gallery URL placeholders (remove unused ones)
+            for (let i = allGalleryUrls.length + 1; i <= 99; i++) {
+                const num = String(i).padStart(2, '0');
+                const galleryUrlPattern = '\\$FORMVALUE_IMAGE_GALLERY_URL_' + num;
+                output = output.replace(new RegExp(galleryUrlPattern, 'g'), '');
+            }
+
+            // Determine column placement and update HTML structure
+            const leftColumnArticles = [];
+            const rightColumnArticles = [];
+
+            articles.forEach((article, index) => {
+                const order = index + 1;
+                const articleNumber = String(order).padStart(2, '0');
+                
+                let bodyContent = '';
+                if (quillEditors[article.id]) {
+                    bodyContent = quillEditors[article.id].root.innerHTML;
+                } else {
+                    const bodyElement = document.getElementById('body-' + article.id);
+                    bodyContent = bodyElement ? bodyElement.innerHTML : '';
+                }
+
+                const imageId = article.title.trim() ? slugify(article.title) : '';
+                
+                let mediaContent = '';
+                // Only add image if URL has a value
+                if (article.imageUrl && article.imageUrl.trim()) {
+                    mediaContent += '<img class="masonry-image" alt="' + escapeHtml(article.imageAlt) + '" id="' + imageId + '" src="' + escapeHtml(article.imageUrl) + '" />';
+                }
+                // Only add video if URL has a value
+                if (article.videoUrl && article.videoUrl.trim()) {
+                    // Convert video URL to embed format
+                    const embedUrl = convertToEmbedUrl(article.videoUrl);
+                    mediaContent += '<div class="video-container">\n          <iframe width="560" height="315" src="' + escapeHtml(embedUrl) + '" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>\n        </div>';
+                }
+
+                // Determine media class based on what's actually present
+                let mediaClass = '';
+                const hasImage = article.imageUrl && article.imageUrl.trim();
+                const hasVideo = article.videoUrl && article.videoUrl.trim();
+                if (hasImage && hasVideo) {
+                    mediaClass = ''; // Both present - use default grid
+                } else if (hasImage || hasVideo) {
+                    mediaClass = 'single'; // Only one present
+                }
+                
+                // Only add media wrapper if there's actual content
+                let mediaHtml = '';
+                if (mediaContent && mediaContent.trim()) {
+                    mediaHtml = '<div class="media ' + mediaClass + '">\n        ' + mediaContent + '\n      </div>';
+                }
+                
+                const articleHtml = '\n    <!-- Story ' + articleNumber + ' -->\n    <article class="card masonry-item" style="order: ' + order + ';">\n      <h2>' + escapeHtml(article.title) + '</h2>\n      <p>' + bodyContent + '</p>\n      ' + mediaHtml + '\n    </article>';
+
+                if (order % 2 === 1) {
+                    leftColumnArticles.push(articleHtml);
+                } else {
+                    rightColumnArticles.push(articleHtml);
+                }
+            });
+
+            // Replace the main content area
+            const mainGridRegex = /<div class="main-grid">([\s\S]*?)<\/div>/;
+            const leftColumnHtml = leftColumnArticles.join('\n');
+            const rightColumnHtml = rightColumnArticles.join('\n');
+            
+            const newMainGrid = '<div class="main-grid">\n  <div class="main-content">\n  \n    <!-- Left Column -->\n' + leftColumnHtml + '\n  </div>\n\n\n  <!-- Right Column -->\n\n  <div class="sidebar">\n  \n' + rightColumnHtml + '\n\n  </div>\n\n</div>';
+
+            output = output.replace(mainGridRegex, newMainGrid);
+
+            // Display output
+            document.getElementById('codeOutput').textContent = output;
+            const previewFrame = document.getElementById('previewFrame');
+            previewFrame.srcdoc = output;
+            document.getElementById('outputSection').classList.add('visible');
+            
+            // Scroll to output
+            document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyToClipboard() {
+            const codeOutput = document.getElementById('codeOutput');
+            const text = codeOutput.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        function setupDragDrop() {
+            const articleGroups = document.querySelectorAll('.article-group');
+            
+            articleGroups.forEach(group => {
+                group.addEventListener('dragstart', handleDragStart);
+                group.addEventListener('dragover', handleDragOver);
+                group.addEventListener('drop', handleDrop);
+                group.addEventListener('dragend', handleDragEnd);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            
+            const afterElement = getDragAfterElement(this.parentNode, e.clientY);
+            const dragging = document.querySelector('.dragging');
+            
+            if (afterElement == null) {
+                this.parentNode.appendChild(dragging);
+            } else {
+                this.parentNode.insertBefore(dragging, afterElement);
+            }
+            
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            if (draggedElement !== this) {
+                const allGroups = Array.from(this.parentNode.querySelectorAll('.article-group'));
+                const draggedIndex = allGroups.indexOf(draggedElement);
+                const targetIndex = allGroups.indexOf(this);
+
+                // Reorder articles array
+                const draggedArticle = articles[draggedIndex];
+                articles.splice(draggedIndex, 1);
+                articles.splice(targetIndex, 0, draggedArticle);
+
+                renderArticles();
+                setupDragDrop();
+                
+                // Reinitialize Quill
+                articles.forEach(article => {
+                    initQuill(article.id);
+                });
+            }
+
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            
+            document.querySelectorAll('.article-group').forEach(group => {
+                group.classList.remove('dragging');
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.article-group:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+    </script>
+</body>
+</html>
+
