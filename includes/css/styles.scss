@@ -278,6 +278,99 @@ body {
                     }                    
                 }
             }
+            
+            .employee-spotlight-section {
+                &.article-group {
+                    background: #f9f9f9;
+                    border: 2px solid $grey;
+                    border-radius: 8px;
+                    padding: 0;
+                    margin-bottom: 20px;
+                    position: relative;
+                    transition: all 0.3s ease;
+                    overflow: hidden;
+
+                    &:hover {
+                        border-color: $navy;
+                    }
+                    &.collapsed {
+                        .article-content {
+                            display: none;
+                        }
+                        .article-toggle {
+                            transform: rotate(-90deg);
+                        }
+                    }
+
+                    .article-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 10px;
+                        border-bottom: 2px solid $grey;
+                        user-select: none;
+                        background: white;
+                        transition: background-color 0.2s ease;
+                        cursor: pointer;
+
+                        @media (max-width: 768px) {
+                            flex-direction: column;
+                            align-items: flex-start;
+                            gap: 12px;
+                        }
+
+                        &:hover {
+                            background: #f5f5f5;
+                        }
+
+                        .article-header-left {
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            flex: 1;
+
+                            .article-toggle {
+                                font-size: 18px;
+                                color: $navy;
+                                transition: transform 0.3s ease;
+                                font-weight: bold;
+                                min-width: 20px;
+                                text-align: center;
+                            }
+                            .article-number {
+                                font-weight: 700;
+                                color: $navy;
+                                font-size: 18px;
+                            }
+                        }
+                        .article-actions {
+                            display: flex;
+                            gap: 8px;
+                        }
+                    }
+                    .article-content {
+                        padding: 10px;
+                        transition: all 0.3s ease;
+
+                        .form-group {
+                            margin-bottom: 10px;
+
+                            label {
+                                display: block;
+                                margin-bottom: 2px;
+                                font-weight: 600;
+                                color: #333;
+                                font-size: 14px;
+                                &.required::after {
+                                    content: " *";
+                                    color: $red;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
             .form-actions {
                 display: flex;
                 gap: 12px;

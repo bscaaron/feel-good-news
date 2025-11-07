@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webform Builder</title>
+    <title>FGN Builder</title>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="includes/css/styles.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Webform Builder</h1>
+            <h1>FGN Builder</h1>
         </div>
 
         <div class="main-content-wrapper">
@@ -22,8 +22,32 @@
                     </div>
                 </div>
 
-                <div class="employee-spotlight-section" style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 2px solid #e0e0e0;">
-                    <h3 style="margin-bottom: 16px; color: #0c2a4a; font-size: 18px;">Employee Spotlight</h3>
+                <div class="articles-container" id="articlesContainer">
+                    <!-- Articles will be dynamically added here -->
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="add-article-btn" onclick="addArticle()">
+                        + Add Article
+                    </button>
+                    <button type="button" class="add-article-btn" onclick="addThankDonor()" id="addThankDonorBtn">
+                        + Add Thank the Donor
+                    </button>
+                    <button type="button" class="copy-btn" onclick="copyToClipboard()">
+                        Copy Code
+                    </button>
+                </div>
+
+                <div class="employee-spotlight-section article-group" id="employeeSpotlightGroup">
+                    <div class="article-header" onclick="toggleEmployeeSpotlight()">
+                        <div class="article-header-left">
+                            <span class="article-toggle">▼</span>
+                            <span class="article-number">Employee Spotlight</span>
+                        </div>
+                        <div class="article-actions" onclick="event.stopPropagation()">
+                        </div>
+                    </div>
+                    <div class="article-content">
                     <div class="form-group">
                         <label class="required">Name</label>
                         <input type="text" id="employeeSpotlightName" value="Daniel Tomlinson" oninput="updateEmployeeSpotlight('name', this.value)" placeholder="Enter employee name" />
@@ -34,25 +58,18 @@
                     </div>
                     <div class="form-group">
                         <label class="required">Image URL</label>
-                        <input type="text" id="employeeSpotlightImageUrl" value="https://www.bloodcenter.org/webres/Image/FGN/10242025/RoseSzczurek.jpg" oninput="updateEmployeeSpotlight('imageUrl', this.value)" placeholder="Enter image URL" />
+                            <input type="text" id="employeeSpotlightImageUrl" value="https://www.bloodcenter.org/webres/Image/FGN/10242025/RoseSzczurek.jpg" oninput="updateEmployeeSpotlight('imageUrl', this.value)" placeholder="Enter image path (e.g., /webres/Image/FGN/10242025/image.jpg)" />
                     </div>
                     <div class="form-group">
-                        <label class="required">Content</label>
-                        <div id="employeeSpotlightContent" class="quill-editor"></div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <label style="margin: 0;">Questions & Answers</label>
+                                <button type="button" class="btn btn-secondary btn-small" onclick="addEmployeeSpotlightQuestion()">+ Add Question</button>
                     </div>
+                            <div id="employeeSpotlightQuestions">
+                                <!-- Questions will be dynamically added here -->
                 </div>
-
-                <div class="articles-container" id="articlesContainer">
-                    <!-- Articles will be dynamically added here -->
                 </div>
-
-                <div class="form-actions">
-                    <button type="button" class="add-article-btn" onclick="addArticle()">
-                        + Add Article
-                    </button>
-                    <button type="button" class="copy-btn" onclick="copyToClipboard()">
-                        Copy Code
-                    </button>
+                    </div>
                 </div>
             </div>
 
@@ -73,18 +90,29 @@
         let quillEditors = {}; // Store Quill editor instances
         let updateTimeout = null; // Debounce timer for real-time updates
         let publicationDate = ''; // Store the selected publication date
+        let publicationDateISO = ''; // Store the ISO format date (YYYY-MM-DD) for schema
         let employeeSpotlight = {
             name: 'Daniel Tomlinson',
             title: 'Digital Marketing Specialist',
             imageUrl: 'https://www.bloodcenter.org/webres/Image/FGN/10242025/RoseSzczurek.jpg',
-            content: ''
+            questions: [] // Array of {question: '', answer: ''} objects
         };
-        let employeeSpotlightQuill = null; // Store Quill editor for employee spotlight content
+        let thankTheDonor = {
+            enabled: false,
+            collapsed: false,
+            id: 'thank-donor-section',
+            title: '',
+            body: '',
+            imageUrl: '',
+            imageAlt: ''
+        };
+        let thankDonorQuill = null; // Store Quill editor for thank the donor content
+        let employeeSpotlightCollapsed = false; // Track Employee Spotlight collapsed state
 
                                                                                                                                 // Initialize template content (embedded to avoid CORS issues with file://)
         function initializeTemplate() {
             // Template content from output.html - embedded directly to avoid CORS issues
-            const templateString = "<meta charset=\"utf-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title></title>\n<meta name=\"description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:title\" content=\"Feel-Good News - ImpactLife\" /><meta property=\"og:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:site_name\" content=\"ImpactLife\" /><meta property=\"og:type\" content=\"article\" /><meta name=\"twitter:card\" content=\"summary_large_image\" /><meta name=\"twitter:title\" content=\"Feel-Good News - ImpactLife\" /><meta name=\"twitter:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" />\n<style type=\"text/css\">/* Enhanced Feel-Good News Layout */\n    :root{\n      --navy:#0c2a4a;\n      --red:#e5253a;\n      --yellow:#f4b000;\n      --gray-100:#f6f7f9;\n      --radius:18px;\n      --gap:24px;\n    }\n    *{box-sizing:border-box}\n    body{background:var(--gray-100);}\n\n    .wrapper{max-width:1120px;margin-inline:auto;padding:28px 18px 56px;}\n\n    /* Hero Section */\n    header.hero{\n      background:var(--navy);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:36px 24px 24px;\n      position:relative;\n      overflow:hidden;\n    }\n    .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}\n    .brand img{height:28px;width:auto}\n    .hero h1{margin:8px 0 10px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; font-size:5rem;}\n    h1:before{display:none;}\n    .date-badge{\n      position:absolute;right:18px;top:18px;\n      background:var(--red);color:#fff;\n      padding:10px 14px;border-radius:999px;\n      font-weight:700;font-size:14px\n    }\n    .stripe{position:absolute;left:0;bottom:0;width:100%;height:10px;background:var(--yellow);}\n\n    /* Main Content Grid - Masonry Style */\n    .main-grid{column-count:2;column-gap:var(--gap);margin-top:var(--gap);}\n    .main-content{column-break-inside:avoid;break-inside:avoid;}\n    .sidebar{grid-column:2;}\n    \n    /* Masonry Flow Classes */\n    .masonry-item{break-inside:avoid;margin-bottom:var(--gap);display:inline-block;width:100%;}\n    .masonry-item:last-child{margin-bottom:0;}\n    \n    /* Article Cards */\n    .card{\n      background:#fff;border-radius:var(--radius);\n      padding:22px 20px;box-shadow:0 2px 10px rgba(12,42,74,.06);\n      margin-bottom:var(--gap);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .card:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.15);\n      background:var(--navy);\n      color:#fff;\n    }\n    .card h2{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; color:var(--navy); margin-bottom:12px;}\n    .card:hover h2{color:#fff;}\n    .card blockquote{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; font-style:italic; color:var(--red); border-left:4px solid var(--red); padding-left:16px; margin:16px 0;}\n    .card:hover blockquote{color:#fff; border-left-color:#fff;}\n    \n    /* Links */\n    a{color:var(--red); text-decoration:none;}\n    a:hover{text-decoration:underline;}\n    .card:hover a{color:#fff;}\n    \n    /* Button Styling */\n    .btn{font-size:inherit; padding:.625em 1.5em;}\n    \n    /* Media Grid */\n    .media{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:14px}\n    .media img{width:100%;height:auto;border-radius:14px;display:block}\n    .media.single{grid-template-columns:1fr}\n    .masonry-image{width:100%; height:auto; display:block; max-width:500px; opacity:1; transition: opacity 1s ease-in-out;}\n    \n    /* Video Container */\n    .video-container{\n      position:relative;\n      width:100%;\n      height:0;\n      padding-bottom:56.25%; /* 16:9 aspect ratio */\n      overflow:hidden;\n      border-radius:14px;\n    }\n    .video-container iframe{\n      position:absolute;\n      top:0;\n      left:0;\n      width:100%;\n      height:100%;\n    }\n    \n    /* Sidebar */\n    .sidebar{display:none;}\n    \n    /* Bottom Spotlight Section */\n    .bottom-spotlight{\n      grid-column:1 / -1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n    }\n    \n    /* Thank The Donor Section */\n    .thank-donor-section{\n      grid-column:1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n      background:var(--yellow);\n      color:var(--navy);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .thank-donor-section:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(244,176,0,.3);\n      background:#e6a600;\n    }\n    .thank-donor-section h2{\n      color:var(--navy);\n    }\n    \n    /* Callout Sections */\n    .callout{\n      background:var(--navy);color:#fff;border-radius:var(--radius);\n      padding:22px 20px;\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .callout:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.3);\n      background:#0a1f3a;\n    }\n    .callout h2{color:#fff; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    .spotlight-grid{display:grid;gap:14px;grid-template-columns:1fr 1.15fr;align-items:start;}\n    .spotlight-photo{width:100%;height:auto;max-height:500px;border-radius:16px;display:block;object-fit:cover;}\n    .pill{display:inline-block;background:var(--red);color:#fff;font-weight:800;\n      padding:6px 12px;border-radius:999px;margin-bottom:10px;}\n\n    /* Special Sections */\n    .highlight-box{\n      background:linear-gradient(135deg, var(--red) 0%, #BB2031 100%);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:20px;\n      margin:var(--gap) 0;\n    }\n    .highlight-box h3{color:#fff; margin-bottom:12px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    \n    /* Footer */\n    footer{margin-top:var(--gap);background:#001a33;color:#dbe6f2;border-radius:var(--radius);}\n    footer .inner{padding:16px 20px;text-align:center;font-size:14px}\n\n    /* Responsive Design */\n    @media (max-width:980px){\n      .main-grid{column-count:1;}\n      .main-content{grid-column:1; order:1; display:contents;}\n      .sidebar{grid-column:1; order:2; display:contents;}\n      .thank-donor-section{grid-column:1; order:3;}\n      .bottom-spotlight{grid-column:1; order:4;}\n      .spotlight-grid{grid-template-columns:1fr}\n      .media{grid-template-columns:1fr}\n      .date-badge{position:static;display:inline-block;margin-top:8px}\n    }\n    \n    @media (max-width:768px){\n      .wrapper{padding:18px 12px 36px;}\n      .hero{padding:24px 18px 18px;}\n      .card{padding:18px 16px;}\n      .callout{padding:18px 16px;}\n    }\n</style>\n<div class=\"wrapper\"><!-- HERO -->\n<header aria-labelledby=\"title\" class=\"hero\">\n<div class=\"date-badge\">$FORMVALUE_PUBLICATION_DATE</div>\n\n<h1 id=\"title\" style=\"color:white;\">FEEL-GOOD NEWS</h1>\n\n<div class=\"stripe\"></div>\n</header>\n\n\n<!-- Main Content - Masonry Layout -->\n<div class=\"main-grid\">\n  <div class=\"main-content\">\n  \n    <!-- Left Column -->\n\n    <!-- Story 1 -->\n    <article class=\"card masonry-item\" style=\"order: 1;\">\n      <h2>$FORMVALUE_TITLE_01</h2>\n      <p>$FORMVALUE_BODY_CONTENT_01</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_01\" id=\"$FORMVALUE_IMAGE_ID_01\" src=\"$FORMVALUE_IMAGE_URL_01\" />\n      </div>\n    </article>\n\n    <!-- Story 3 -->\n    <article class=\"card masonry-item\" style=\"order: 3;\">\n      <h2>$FORMVALUE_TITLE_03</h2>\n      <p>$FORMVALUE_BODY_CONTENT_03</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_03\" id=\"$FORMVALUE_IMAGE_ID_03\" src=\"$FORMVALUE_IMAGE_URL_03\" />\n      </div>\n    </article>\n  </div>\n\n\n  <!-- Right Column -->\n\n  <div class=\"sidebar\">\n  \n    <!-- Story 2 -->\n    <article class=\"card masonry-item\" style=\"order: 2;\">\n      <h2>$FORMVALUE_TITLE_02</h2>\n      <p>$FORMVALUE_BODY_CONTENT_02</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_02\" id=\"$FORMVALUE_IMAGE_ID_02\" src=\"$FORMVALUE_IMAGE_URL_02\" />\n      </div>\n    </article>\n\n    <!-- Story 4 -->\n    <article class=\"card masonry-item\" style=\"order: 4;\">\n      <h2>$FORMVALUE_TITLE_04</h2>\n      <p>$FORMVALUE_BODY_CONTENT_04</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_04\" id=\"$FORMVALUE_IMAGE_ID_04\" src=\"$FORMVALUE_IMAGE_URL_04\" />\n        <div class=\"video-container\">\n          <iframe allowfullscreen=\"\" frameborder=\"0\" mozallowfullscreen=\"\" src=\"$FORMVALUE_VIDEO_URL_04\" webkitallowfullscreen=\"\"></iframe>\n        </div>\n      </div>\n    </article>\n\n  </div>\n\n</div>\n<!-- Employee Spotlight -->\n\n<section class=\"callout bottom-spotlight\" style=\"order: 5;\"><span class=\"pill\">EMPLOYEE SPOTLIGHT</span>\n\n<h2 style=\"text-align: center;\">$EMPLOYEE_SPOTLIGHT_NAME</h2>\n\n<div class=\"spotlight-grid\">\n<div><img alt=\"$EMPLOYEE_SPOTLIGHT_NAME, $EMPLOYEE_SPOTLIGHT_TITLE\" class=\"spotlight-photo\" src=\"$EMPLOYEE_SPOTLIGHT_URL\" /></div>\n\n<div>\n<p>$EMPLOYEE_SPOTLIGHT_CONTENT</p>\n</div>\n</div>\n</section>\n</div>\n<!-- Footer -->\n\n<footer>\n<div class=\"inner\">\n<p>Feel-Good News is published every Friday to inspire + connect our ImpactLife team.</p>\n</div>\n</footer>\n</div>\n<script>\n  (function () {\n    // Form Gallery\n    const formImages = [\n      \"$FORMVALUE_IMAGE_GALLERY_URL_01\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_02\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_03\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_04\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_05\"\n    ];\n    let formIndex = 0;\n    const adamImg = document.getElementById(\"$FORMVALUE_IMAGE_GALLERY_ID_01\");\n    \n    if (formImg) {\n      setInterval(function () {\n        // fade out\n        formImg.style.opacity = 0;\n        \n        setTimeout(() => {\n          // change image once faded\n          formIndex = (formIndex + 1) % formImages.length;\n          formImg.src = formImages[formIndex];\n          // fade in\n          formImg.style.opacity = 1;\n        }, 1000); // matches transition duration\n      }, 5000); // switch every 5 seconds\n    }\n  })();\n" + '</' + 'script>' + "<script>\n  // Hide on-page banner and footer\n  document.addEventListener('DOMContentLoaded', function() {\n    // Hide any on-page banner divs\n    const banners = document.querySelectorAll('div[class*=\"banner\"], div[id*=\"banner\"], .banner, #banner');\n    banners.forEach(banner => {\n      if (banner) {\n        banner.style.display = 'none';\n      }\n    });\n    \n    // Hide footer with specific selector\n    const footer = document.querySelector('#aspnetForm > div.site_wrapper > footer');\n    if (footer) {\n      footer.style.display = 'none';\n    }\n    \n    // Also hide any other footer elements as backup\n    const allFooters = document.querySelectorAll('footer');\n    allFooters.forEach(footer => {\n      if (footer && !footer.classList.contains('inner')) {\n        footer.style.display = 'none';\n      }\n    });\n    \n    // Set specific element width to 100%\n    const targetElement = document.querySelector('#main > div.content.clearfix > div > div > div.group_2of3.first');\n    if (targetElement) {\n      targetElement.style.width = '100%';\n    }\n    \n    // Hide and remove sizing from specific elements\n    const firstChild = document.querySelector('#main > div.content.clearfix > div > div > div:nth-child(1)');\n    if (firstChild) {\n      firstChild.style.display = 'none';\n      firstChild.style.width = '0';\n      firstChild.style.height = '0';\n      firstChild.style.margin = '0';\n      firstChild.style.padding = '0';\n    }\n    \n    // Hide navigation\n    const nav = document.querySelector('#main > nav');\n    if (nav) {\n      nav.style.display = 'none';\n    }\n  }); \n" + '</' + 'script>' + "<script>\n(function () {\n  var NEW_NAME = \"ImpactLife\";\n  var OLD_NAME = \"MVRBC\";\n\n  // --- 1) Update JSON-LD (application/ld+json) ---\n  function mutateNames(obj) {\n    if (!obj || typeof obj !== \"object\") return;\n    if (Array.isArray(obj)) {\n      obj.forEach(mutateNames);\n      return;\n    }\n    // Replace exact \"MVRBC\" in common places (and anywhere 'name' equals it)\n    if (typeof obj.name === \"string\" && obj.name.trim() === OLD_NAME) {\n      obj.name = NEW_NAME;\n    }\n    if (obj.author && typeof obj.author === \"object\") {\n      if (typeof obj.author.name === \"string\" && obj.author.name.trim() === OLD_NAME) {\n        obj.author.name = NEW_NAME;\n      }\n    }\n    if (obj.publisher && typeof obj.publisher === \"object\") {\n      if (typeof obj.publisher.name === \"string\" && obj.publisher.name.trim() === OLD_NAME) {\n        obj.publisher.name = NEW_NAME;\n      }\n    }\n    // Recurse through all properties\n    Object.keys(obj).forEach(function (k) {\n      if (obj[k] && typeof obj[k] === \"object\") mutateNames(obj[k]);\n    });\n  }\n\n  Array.prototype.forEach.call(\n    document.querySelectorAll('script[type=\"application/ld+json\"]'),\n    function (node) {\n      try {\n        // Some sites embed minified JSON; keep formatting minimal on write-back\n        var data = JSON.parse(node.textContent.trim());\n        mutateNames(data);\n        node.textContent = JSON.stringify(data);\n      } catch (e) {\n        // Ignore scripts that aren't valid JSON\n      }\n    }\n  );\n\n  // --- 2) (Optional) Replace visible text \"MVRBC\" with \"ImpactLife\" ---\n  // Comment out this block if you only want the JSON-LD change.\n  (function replaceVisibleText() {\n    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {\n      acceptNode: function (n) {\n        // Skip empty/whitespace text nodes\n        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;\n        // Skip text under these elements\n        var p = n.parentNode;\n        while (p) {\n          var tag = (p.tagName || \"\").toLowerCase();\n          if (tag === \"script\" || tag === \"style\" || tag === \"noscript\" || tag === \"textarea\") {\n            return NodeFilter.FILTER_REJECT;\n          }\n          p = p.parentNode;\n        }\n        return NodeFilter.FILTER_ACCEPT;\n      }\n    });\n\n    var re = new RegExp(\"\\\\b\" + OLD_NAME.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\") + \"\\\\b\", \"g\");\n    var node;\n    while ((node = walker.nextNode())) {\n      if (re.test(node.nodeValue)) {\n        node.nodeValue = node.nodeValue.replace(re, NEW_NAME);\n      }\n    }\n   })();\n })();\n " + '</' + 'script>' + "<script>\n // Override schema.org data for social media previews\n (function() {\n   // Update any existing JSON-LD schema\n   const jsonLdScripts = document.querySelectorAll('script[type=\"application/ld+json\"]');\n   jsonLdScripts.forEach(script => {\n     try {\n       const data = JSON.parse(script.textContent);\n       if (data.publisher && data.publisher.name === 'MVRBC') {\n         data.publisher.name = 'ImpactLife';\n       }\n       if (data.author && data.author.name === 'MVRBC') {\n         data.author.name = 'ImpactLife';\n       }\n       if (data.name && data.name.includes('MVRBC')) {\n         data.name = data.name.replace(/MVRBC/g, 'ImpactLife');\n       }\n       script.textContent = JSON.stringify(data);\n     } catch (e) {\n       // Ignore invalid JSON\n     }\n   });\n   \n   // Add new schema to override any global schema\n   const newSchema = {\n     \"@context\": \"https://schema.org\",\n     \"@type\": \"Article\",\n     \"headline\": \"Feel-Good News - ImpactLife\",\n     \"description\": \"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\",\n     \"publisher\": {\n       \"@type\": \"Organization\",\n       \"name\": \"ImpactLife\",\n       \"url\": \"https://www.bloodcenter.org\"\n     },\n     \"author\": {\n       \"@type\": \"Organization\", \n       \"name\": \"ImpactLife\"\n     },\n     \"datePublished\": \"2025-10-24\",\n     \"dateModified\": \"2025-10-24\"\n   };\n   \n   const schemaScript = document.createElement('script');\n   schemaScript.type = 'application/ld+json';\n   schemaScript.textContent = JSON.stringify(newSchema);\n   document.head.appendChild(schemaScript);\n })();\n " + '</' + 'script>' + "";
+            const templateString = "<meta charset=\"utf-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title></title>\n<meta name=\"description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:title\" content=\"Feel-Good News - ImpactLife\" /><meta property=\"og:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:site_name\" content=\"ImpactLife\" /><meta property=\"og:type\" content=\"article\" /><meta name=\"twitter:card\" content=\"summary_large_image\" /><meta name=\"twitter:title\" content=\"Feel-Good News - ImpactLife\" /><meta name=\"twitter:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" />\n<style type=\"text/css\">/* Enhanced Feel-Good News Layout */\n    :root{\n      --navy:#0c2a4a;\n      --red:#e5253a;\n      --yellow:#f4b000;\n      --gray-100:#f6f7f9;\n      --radius:18px;\n      --gap:24px;\n    }\n    *{box-sizing:border-box}\n    body{background:var(--gray-100);}\n\n    .wrapper{max-width:1120px;margin-inline:auto;padding:28px 18px 56px;}\n\n    /* Hero Section */\n    header.hero{\n      background:var(--navy);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:36px 24px 24px;\n      position:relative;\n      overflow:hidden;\n    }\n    .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}\n    .brand img{height:28px;width:auto}\n    .hero h1{margin:8px 0 10px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; font-size:5rem;}\n    h1:before{display:none;}\n    .date-badge{\n      position:absolute;right:18px;top:18px;\n      background:var(--red);color:#fff;\n      padding:10px 14px;border-radius:999px;\n      font-weight:700;font-size:14px\n    }\n    .stripe{position:absolute;left:0;bottom:0;width:100%;height:10px;background:var(--yellow);}\n    .spotlight-stripe{position:absolute;left:0;bottom:0;width:100%;height:30px;display:flex;flex-direction:column;}\n    .spotlight-stripe div{width:100%;height:10px;}\n    .spotlight-stripe-top{background:#c20f2e;}\n    .spotlight-stripe-middle{background:#ef7b25;}\n    .spotlight-stripe-bottom{background:#f4b222;}\n\n    /* Main Content Grid - Masonry Style */\n    .main-grid{column-count:2;column-gap:var(--gap);margin-top:var(--gap);}\n    .main-content{column-break-inside:avoid;break-inside:avoid;}\n    .sidebar{grid-column:2;}\n    \n    /* Masonry Flow Classes */\n    .masonry-item{break-inside:avoid;margin-bottom:var(--gap);display:inline-block;width:100%;}\n    .masonry-item:last-child{margin-bottom:0;}\n    \n    /* Article Cards */\n    .card{\n      background:#fff;border-radius:var(--radius);\n      padding:22px 20px;box-shadow:0 2px 10px rgba(12,42,74,.06);\n      margin-bottom:var(--gap);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .card:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.15);\n      background:var(--navy);\n      color:#fff;\n    }\n    .card h2{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; color:var(--navy); margin-bottom:12px;}\n    .card:hover h2{color:#fff;}\n    .card blockquote{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; font-style:italic; color:var(--red); border-left:4px solid var(--red); padding-left:16px; margin:16px 0;}\n    .card:hover blockquote{color:#fff; border-left-color:#fff;}\n    \n    /* Links */\n    a{color:var(--red); text-decoration:none;}\n    a:hover{text-decoration:underline;}\n    .card:hover a{color:#fff;}\n    \n    /* Button Styling */\n    .btn{font-size:inherit; padding:.625em 1.5em;}\n    \n    /* Media Grid */\n    .media{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:14px}\n    .media img{width:100%;height:auto;border-radius:14px;display:block}\n    .media.single{grid-template-columns:1fr}\n    .masonry-image{width:100%; height:auto; display:block; max-width:500px; opacity:1; transition: opacity 1s ease-in-out;}\n    \n    /* Video Container */\n    .video-container{\n      position:relative;\n      width:100%;\n      height:0;\n      padding-bottom:56.25%; /* 16:9 aspect ratio */\n      overflow:hidden;\n      border-radius:14px;\n    }\n    .video-container iframe{\n      position:absolute;\n      top:0;\n      left:0;\n      width:100%;\n      height:100%;\n    }\n    \n    /* Sidebar */\n    .sidebar{display:none;}\n    \n    /* Bottom Spotlight Section */\n    .bottom-spotlight{\n      grid-column:1 / -1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n    }\n    \n    /* Thank The Donor Section */\n    .thank-donor-section{\n      grid-column:1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n      background:var(--yellow);\n      color:var(--navy);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .thank-donor-section:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(244,176,0,.3);\n      background:#e6a600;\n    }\n    .thank-donor-section h2{\n      color:var(--navy);\n    }\n    \n    /* Callout Sections */\n    .callout{\n      background:var(--navy);color:#fff;border-radius:var(--radius);\n      padding:22px 20px;\n      transition: all 0.3s ease;\n      cursor: pointer;\n      position:relative;\n      overflow:hidden;\n    }\n    .callout.bottom-spotlight{\n      padding-bottom:52px;\n    }\n    .callout:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.3);\n      background:#0a1f3a;\n    }\n    .callout h2{color:#fff; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    .spotlight-grid{display:grid;gap:14px;grid-template-columns:1fr 1.15fr;align-items:start;}\n    .spotlight-photo{width:100%;height:auto;max-height:500px;border-radius:16px;display:block;object-fit:cover;}\n    .pill{display:inline-block;background:var(--red);color:#fff;font-weight:800;\n      padding:6px 12px;border-radius:999px;margin-bottom:10px;}\n\n    /* Special Sections */\n    .highlight-box{\n      background:linear-gradient(135deg, var(--red) 0%, #BB2031 100%);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:20px;\n      margin:var(--gap) 0;\n    }\n    .highlight-box h3{color:#fff; margin-bottom:12px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    \n    /* Footer */\n    footer{margin-top:var(--gap);background:#001a33;color:#dbe6f2;border-radius:var(--radius);}\n    footer .inner{padding:16px 20px;text-align:center;font-size:14px}\n\n    /* Side-by-Side Container */\n    .side-by-side-container{\n      display:grid;\n      grid-template-columns:1fr 1fr;\n      gap:var(--gap);\n      margin-top:var(--gap);\n      grid-column:1 / -1;\n    }\n    .side-by-side-container .thank-donor-section,\n    .side-by-side-container .bottom-spotlight{\n      margin:0;\n    }\n    \n    /* Responsive Design */\n    @media (max-width:980px){\n      .main-grid{column-count:1;}\n      .main-content{grid-column:1; order:1; display:contents;}\n      .sidebar{grid-column:1; order:2; display:contents;}\n      .thank-donor-section{grid-column:1; order:3;}\n      .bottom-spotlight{grid-column:1; order:4;}\n      .side-by-side-container{grid-template-columns:1fr;}\n      .spotlight-grid{grid-template-columns:1fr}\n      .media{grid-template-columns:1fr}\n      .date-badge{position:static;display:inline-block;margin-top:8px}\n    }\n    \n    @media (max-width:768px){\n      .wrapper{padding:18px 12px 36px;}\n      .hero{padding:24px 18px 18px;}\n      .card{padding:18px 16px;}\n      .callout{padding:18px 16px;}\n      .callout.bottom-spotlight{padding-bottom:52px;}\n    }\n</style>\n<div class=\"wrapper\"><!-- HERO -->\n<header aria-labelledby=\"title\" class=\"hero\">\n<div class=\"date-badge\">$FORMVALUE_PUBLICATION_DATE</div>\n\n<h1 id=\"title\" style=\"color:white;\">FEEL-GOOD NEWS</h1>\n\n<div class=\"stripe\"></div>\n</header>\n\n\n<!-- Main Content - Masonry Layout -->\n<div class=\"main-grid\">\n  <div class=\"main-content\">\n  \n    <!-- Left Column -->\n\n    <!-- Story 1 -->\n    <article class=\"card masonry-item\" style=\"order: 1;\">\n      <h2>$FORMVALUE_TITLE_01</h2>\n      <p>$FORMVALUE_BODY_CONTENT_01</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_01\" id=\"$FORMVALUE_IMAGE_ID_01\" src=\"$FORMVALUE_IMAGE_URL_01\" />\n      </div>\n    </article>\n\n    <!-- Story 3 -->\n    <article class=\"card masonry-item\" style=\"order: 3;\">\n      <h2>$FORMVALUE_TITLE_03</h2>\n      <p>$FORMVALUE_BODY_CONTENT_03</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_03\" id=\"$FORMVALUE_IMAGE_ID_03\" src=\"$FORMVALUE_IMAGE_URL_03\" />\n      </div>\n    </article>\n  </div>\n\n\n  <!-- Right Column -->\n\n  <div class=\"sidebar\">\n  \n    <!-- Story 2 -->\n    <article class=\"card masonry-item\" style=\"order: 2;\">\n      <h2>$FORMVALUE_TITLE_02</h2>\n      <p>$FORMVALUE_BODY_CONTENT_02</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_02\" id=\"$FORMVALUE_IMAGE_ID_02\" src=\"$FORMVALUE_IMAGE_URL_02\" />\n      </div>\n    </article>\n\n    <!-- Story 4 -->\n    <article class=\"card masonry-item\" style=\"order: 4;\">\n      <h2>$FORMVALUE_TITLE_04</h2>\n      <p>$FORMVALUE_BODY_CONTENT_04</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_04\" id=\"$FORMVALUE_IMAGE_ID_04\" src=\"$FORMVALUE_IMAGE_URL_04\" />\n        <div class=\"video-container\">\n          <iframe allowfullscreen=\"\" frameborder=\"0\" mozallowfullscreen=\"\" src=\"$FORMVALUE_VIDEO_URL_04\" webkitallowfullscreen=\"\"></iframe>\n        </div>\n      </div>\n    </article>\n\n  </div>\n\n</div>\n<!-- Employee Spotlight -->\n\n<section class=\"callout bottom-spotlight\" style=\"order: 5;\"><span class=\"pill\">EMPLOYEE SPOTLIGHT</span>\n\n<h2 style=\"text-align: center;\">$EMPLOYEE_SPOTLIGHT_NAME</h2>\n<p style=\"text-align: center; margin-top: 8px; margin-bottom: 16px; font-size: 1.1em;\">$EMPLOYEE_SPOTLIGHT_TITLE</p>\n\n<div class=\"spotlight-grid\">\n<div><img alt=\"$EMPLOYEE_SPOTLIGHT_NAME, $EMPLOYEE_SPOTLIGHT_TITLE\" class=\"spotlight-photo\" src=\"$EMPLOYEE_SPOTLIGHT_URL\" /></div>\n\n<div>\n<p>$EMPLOYEE_SPOTLIGHT_CONTENT</p>\n</div>\n</div>\n\n<div class=\"spotlight-stripe\">\n<div class=\"spotlight-stripe-top\"></div>\n<div class=\"spotlight-stripe-middle\"></div>\n<div class=\"spotlight-stripe-bottom\"></div>\n</div>\n</section>\n</div>\n<!-- Footer -->\n\n<footer>\n<div class=\"inner\">\n<p>Feel-Good News is published every Friday to inspire + connect our ImpactLife team.</p>\n</div>\n</footer>\n</div>\n<script>\n  (function () {\n    // Form Gallery\n    const formImages = [\n      \"$FORMVALUE_IMAGE_GALLERY_URL_01\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_02\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_03\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_04\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_05\"\n    ];\n    let formIndex = 0;\n    const adamImg = document.getElementById(\"$FORMVALUE_IMAGE_GALLERY_ID_01\");\n    \n    if (formImg) {\n      setInterval(function () {\n        // fade out\n        formImg.style.opacity = 0;\n        \n        setTimeout(() => {\n          // change image once faded\n          formIndex = (formIndex + 1) % formImages.length;\n          formImg.src = formImages[formIndex];\n          // fade in\n          formImg.style.opacity = 1;\n        }, 1000); // matches transition duration\n      }, 5000); // switch every 5 seconds\n    }\n  })();\n" + '</' + 'script>' + "<script>\n  // Hide on-page banner and footer\n  document.addEventListener('DOMContentLoaded', function() {\n    // Hide any on-page banner divs\n    const banners = document.querySelectorAll('div[class*=\"banner\"], div[id*=\"banner\"], .banner, #banner');\n    banners.forEach(banner => {\n      if (banner) {\n        banner.style.display = 'none';\n      }\n    });\n    \n    // Hide footer with specific selector\n    const footer = document.querySelector('#aspnetForm > div.site_wrapper > footer');\n    if (footer) {\n      footer.style.display = 'none';\n    }\n    \n    // Also hide any other footer elements as backup\n    const allFooters = document.querySelectorAll('footer');\n    allFooters.forEach(footer => {\n      if (footer && !footer.classList.contains('inner')) {\n        footer.style.display = 'none';\n      }\n    });\n    \n    // Set specific element width to 100%\n    const targetElement = document.querySelector('#main > div.content.clearfix > div > div > div.group_2of3.first');\n    if (targetElement) {\n      targetElement.style.width = '100%';\n    }\n    \n    // Hide and remove sizing from specific elements\n    const firstChild = document.querySelector('#main > div.content.clearfix > div > div > div:nth-child(1)');\n    if (firstChild) {\n      firstChild.style.display = 'none';\n      firstChild.style.width = '0';\n      firstChild.style.height = '0';\n      firstChild.style.margin = '0';\n      firstChild.style.padding = '0';\n    }\n    \n    // Hide navigation\n    const nav = document.querySelector('#main > nav');\n    if (nav) {\n      nav.style.display = 'none';\n    }\n  }); \n" + '</' + 'script>' + "<script>\n(function () {\n  var NEW_NAME = \"ImpactLife\";\n  var OLD_NAME = \"MVRBC\";\n\n  // --- 1) Update JSON-LD (application/ld+json) ---\n  function mutateNames(obj) {\n    if (!obj || typeof obj !== \"object\") return;\n    if (Array.isArray(obj)) {\n      obj.forEach(mutateNames);\n      return;\n    }\n    // Replace exact \"MVRBC\" in common places (and anywhere 'name' equals it)\n    if (typeof obj.name === \"string\" && obj.name.trim() === OLD_NAME) {\n      obj.name = NEW_NAME;\n    }\n    if (obj.author && typeof obj.author === \"object\") {\n      if (typeof obj.author.name === \"string\" && obj.author.name.trim() === OLD_NAME) {\n        obj.author.name = NEW_NAME;\n      }\n    }\n    if (obj.publisher && typeof obj.publisher === \"object\") {\n      if (typeof obj.publisher.name === \"string\" && obj.publisher.name.trim() === OLD_NAME) {\n        obj.publisher.name = NEW_NAME;\n      }\n    }\n    // Recurse through all properties\n    Object.keys(obj).forEach(function (k) {\n      if (obj[k] && typeof obj[k] === \"object\") mutateNames(obj[k]);\n    });\n  }\n\n  Array.prototype.forEach.call(\n    document.querySelectorAll('script[type=\"application/ld+json\"]'),\n    function (node) {\n      try {\n        // Some sites embed minified JSON; keep formatting minimal on write-back\n        var data = JSON.parse(node.textContent.trim());\n        mutateNames(data);\n        node.textContent = JSON.stringify(data);\n      } catch (e) {\n        // Ignore scripts that aren't valid JSON\n      }\n    }\n  );\n\n  // --- 2) (Optional) Replace visible text \"MVRBC\" with \"ImpactLife\" ---\n  // Comment out this block if you only want the JSON-LD change.\n  (function replaceVisibleText() {\n    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {\n      acceptNode: function (n) {\n        // Skip empty/whitespace text nodes\n        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;\n        // Skip text under these elements\n        var p = n.parentNode;\n        while (p) {\n          var tag = (p.tagName || \"\").toLowerCase();\n          if (tag === \"script\" || tag === \"style\" || tag === \"noscript\" || tag === \"textarea\") {\n            return NodeFilter.FILTER_REJECT;\n          }\n          p = p.parentNode;\n        }\n        return NodeFilter.FILTER_ACCEPT;\n      }\n    });\n\n    var re = new RegExp(\"\\\\b\" + OLD_NAME.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\") + \"\\\\b\", \"g\");\n    var node;\n    while ((node = walker.nextNode())) {\n      if (re.test(node.nodeValue)) {\n        node.nodeValue = node.nodeValue.replace(re, NEW_NAME);\n      }\n    }\n   })();\n })();\n " + '</' + 'script>' + "<script>\n // Override schema.org data for social media previews\n (function() {\n   // Update any existing JSON-LD schema\n   const jsonLdScripts = document.querySelectorAll('script[type=\"application/ld+json\"]');\n   jsonLdScripts.forEach(script => {\n     try {\n       const data = JSON.parse(script.textContent);\n       if (data.publisher && data.publisher.name === 'MVRBC') {\n         data.publisher.name = 'ImpactLife';\n       }\n       if (data.author && data.author.name === 'MVRBC') {\n         data.author.name = 'ImpactLife';\n       }\n       if (data.name && data.name.includes('MVRBC')) {\n         data.name = data.name.replace(/MVRBC/g, 'ImpactLife');\n       }\n       script.textContent = JSON.stringify(data);\n     } catch (e) {\n       // Ignore invalid JSON\n     }\n   });\n   \n   // Add new schema to override any global schema\n   const newSchema = {\n     \"@context\": \"https://schema.org\",\n     \"@type\": \"Article\",\n     \"headline\": \"Feel-Good News - ImpactLife\",\n     \"description\": \"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\",\n     \"publisher\": {\n       \"@type\": \"Organization\",\n       \"name\": \"ImpactLife\",\n       \"url\": \"https://www.bloodcenter.org\"\n     },\n     \"author\": {\n       \"@type\": \"Organization\", \n       \"name\": \"ImpactLife\"\n     },\n     \"datePublished\": \"$SCHEMA_DATE_PUBLISHED\",\n     \"dateModified\": \"$SCHEMA_DATE_MODIFIED\"\n   };\n   \n   const schemaScript = document.createElement('script');\n   schemaScript.type = 'application/ld+json';\n   schemaScript.textContent = JSON.stringify(newSchema);\n   document.head.appendChild(schemaScript);\n })();\n " + '</' + 'script>' + "";
             templateContent = templateString;
         }
 
@@ -100,16 +128,24 @@
                 const dateString = year + '-' + month + '-' + day;
                 document.getElementById('publicationDate').value = dateString;
                 publicationDate = formatDate(dateString);
+                publicationDateISO = dateString; // Set initial ISO date
                 // Set default Employee Spotlight values in form fields
                 document.getElementById('employeeSpotlightName').value = employeeSpotlight.name;
                 document.getElementById('employeeSpotlightTitle').value = employeeSpotlight.title;
                 document.getElementById('employeeSpotlightImageUrl').value = employeeSpotlight.imageUrl;
+                // Initialize questions if empty - add default questions
+                if (employeeSpotlight.questions.length === 0) {
+                    employeeSpotlight.questions = [
+                        {question: 'Time at ImpactLife', answer: ''},
+                        {question: 'Blood Type', answer: 'O Positive'},
+                        {question: 'What runs thru your veins?', answer: ''},
+                        {question: 'What\'s your favorite thing about being part of our team?', answer: ''},
+                        {question: 'When you are not at work you can be found?', answer: ''}
+                    ];
+                }
+                renderEmployeeSpotlightQuestions();
                 addArticle();
                 setupDragDrop();
-                // Initialize Employee Spotlight Quill editor
-                setTimeout(function() {
-                    initEmployeeSpotlightQuill();
-                }, 100);
                 // Show initial preview after a short delay
                 setTimeout(function() {
                     updateOutputRealTime();
@@ -135,14 +171,347 @@
             return month + ' ' + day + ', ' + year;
         }
 
+        // Format date from YYYY-MM-DD to MMDDYYYY format for file paths
+        function formatDateMMDDYYYY(dateString) {
+            if (!dateString) {
+                // Use today's date if no date is set
+                const today = new Date();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                const year = today.getFullYear();
+                return month + day + year;
+            }
+            
+            const date = new Date(dateString + 'T00:00:00');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const year = date.getFullYear();
+            
+            return month + day + year;
+        }
+
         function updatePublicationDate(dateString) {
             publicationDate = formatDate(dateString);
+            publicationDateISO = dateString || ''; // Store ISO format for schema
             updateOutputRealTime(); // Real-time update
         }
 
         function updateEmployeeSpotlight(field, value) {
+            // Normalize image URLs
+            if (field === 'imageUrl' && value) {
+                value = normalizeImageUrl(value);
+                // Update the input field with normalized value
+                const input = document.getElementById('employeeSpotlightImageUrl');
+                if (input && input.value !== value) {
+                    input.value = value;
+                }
+            }
             employeeSpotlight[field] = value;
             updateOutputRealTime(); // Real-time update
+        }
+
+        function addThankDonor() {
+            thankTheDonor.enabled = true;
+            thankTheDonor.collapsed = false;
+            document.getElementById('addThankDonorBtn').style.display = 'none';
+            
+            renderThankDonor();
+            
+            // Initialize Quill editor after a short delay
+            setTimeout(function() {
+                initThankDonorQuill();
+            }, 100);
+            
+            updateOutputRealTime();
+        }
+
+        function removeThankDonor() {
+            // Save content from Quill editor before clearing
+            if (thankDonorQuill) {
+                thankTheDonor.body = thankDonorQuill.root.innerHTML;
+            }
+            
+            thankTheDonor.enabled = false;
+            thankTheDonor.collapsed = false;
+            thankTheDonor.title = '';
+            thankTheDonor.body = '';
+            thankTheDonor.imageUrl = '';
+            thankTheDonor.imageAlt = '';
+            
+            // Remove the section from DOM
+            const section = document.getElementById(thankTheDonor.id);
+            if (section) {
+                section.remove();
+            }
+            
+            // Clear Quill editor
+            if (thankDonorQuill) {
+                thankDonorQuill.root.innerHTML = '';
+                thankDonorQuill = null;
+            }
+            
+            document.getElementById('addThankDonorBtn').style.display = 'inline-block';
+            
+            updateOutputRealTime();
+        }
+
+        function renderThankDonor() {
+            const container = document.getElementById('articlesContainer');
+            if (!container) return;
+            
+            // Remove existing thank donor section if it exists
+            const existing = document.getElementById(thankTheDonor.id);
+            if (existing) {
+                existing.remove();
+            }
+            
+            // Save Quill content if editor exists
+            if (thankDonorQuill) {
+                thankTheDonor.body = thankDonorQuill.root.innerHTML;
+                thankDonorQuill = null;
+            }
+            
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'article-group';
+            sectionDiv.id = thankTheDonor.id;
+            
+            // Build HTML matching article structure (without video/gallery)
+            var html = '';
+            html += '<div class="article-header" onclick="toggleThankDonor()">';
+            html += '<div class="article-header-left">';
+            html += '<span class="article-toggle">▼</span>';
+            html += '<span class="article-number">Thank the Donor</span>';
+            html += '</div>';
+            html += '<div class="article-actions" onclick="event.stopPropagation()">';
+            html += '<button type="button" class="btn btn-danger btn-small" onclick="removeThankDonor()">Remove</button>';
+            html += '</div></div>';
+            html += '<div class="article-content">';
+            html += '<div class="form-group"><label class="required">Title</label>';
+            html += '<input type="text" id="thankDonorTitle" value="' + escapeHtml(thankTheDonor.title) + '" oninput="updateThankDonor(\'title\', this.value)" placeholder="Enter title">';
+            html += '<div class="error">Title is required</div></div>';
+            html += '<div class="form-group"><label class="required">Body Content</label>';
+            html += '<div id="thankDonorContent" class="quill-editor"></div>';
+            html += '<div class="error">Body content is required</div></div>';
+            html += '<div class="form-group"><label>Image URL</label>';
+            html += '<input type="text" id="thankDonorImageUrl" value="' + escapeHtml(thankTheDonor.imageUrl) + '" oninput="updateThankDonor(\'imageUrl\', this.value); validateThankDonorImageAlt()" placeholder="Enter image path (e.g., /webres/Image/FGN/10242025/image.jpg)">';
+            html += '</div>';
+            html += '<div class="form-group"><label id="thankDonorImageAltLabel">Image Alt Text</label>';
+            html += '<input type="text" id="thankDonorImageAlt" value="' + escapeHtml(thankTheDonor.imageAlt) + '" oninput="updateThankDonor(\'imageAlt\', this.value)" placeholder="Enter image alt text">';
+            html += '<div class="error">Image Alt Text is required when Image URL is provided</div></div>';
+            html += '</div>'; // Close article-content
+            
+            sectionDiv.innerHTML = html;
+            
+            // Set collapsed state
+            if (thankTheDonor.collapsed) {
+                sectionDiv.classList.add('collapsed');
+            }
+            
+            container.appendChild(sectionDiv);
+            
+            // Initialize Quill editor
+            setTimeout(function() {
+                initThankDonorQuill();
+            }, 50);
+        }
+
+        function toggleThankDonor() {
+            thankTheDonor.collapsed = !thankTheDonor.collapsed;
+            const section = document.getElementById(thankTheDonor.id);
+            if (section) {
+                if (thankTheDonor.collapsed) {
+                    section.classList.add('collapsed');
+                } else {
+                    section.classList.remove('collapsed');
+                }
+            }
+        }
+
+        function toggleEmployeeSpotlight() {
+            employeeSpotlightCollapsed = !employeeSpotlightCollapsed;
+            const section = document.getElementById('employeeSpotlightGroup');
+            if (section) {
+                if (employeeSpotlightCollapsed) {
+                    section.classList.add('collapsed');
+                } else {
+                    section.classList.remove('collapsed');
+                }
+            }
+        }
+
+        function updateThankDonor(field, value) {
+            // Normalize image URLs
+            if (field === 'imageUrl' && value) {
+                value = normalizeImageUrl(value);
+                // Update the input field with normalized value
+                const input = document.getElementById('thankDonorImageUrl');
+                if (input && input.value !== value) {
+                    input.value = value;
+                }
+                validateThankDonorImageAlt();
+            }
+            thankTheDonor[field] = value;
+            updateOutputRealTime(); // Real-time update
+        }
+
+        function validateThankDonorImageAlt() {
+            const imageUrlInput = document.getElementById('thankDonorImageUrl');
+            const imageAltInput = document.getElementById('thankDonorImageAlt');
+            const imageAltLabel = document.getElementById('thankDonorImageAltLabel');
+            const formGroup = imageAltInput ? imageAltInput.closest('.form-group') : null;
+
+            if (formGroup && imageUrlInput && imageAltInput && imageAltLabel) {
+                if (imageUrlInput.value.trim()) {
+                    imageAltLabel.classList.add('required');
+                    if (!imageAltInput.value.trim()) {
+                        formGroup.classList.add('has-error');
+                    } else {
+                        formGroup.classList.remove('has-error');
+                    }
+                } else {
+                    imageAltLabel.classList.remove('required');
+                    formGroup.classList.remove('has-error');
+                }
+            }
+        }
+
+        function initThankDonorQuill() {
+            // Wait for Quill to be available
+            if (typeof Quill === 'undefined') {
+                console.warn('Quill not loaded yet, retrying...');
+                setTimeout(function() {
+                    initThankDonorQuill();
+                }, 500);
+                return;
+            }
+            
+            try {
+                const editorId = 'thankDonorContent';
+                const editorElement = document.getElementById(editorId);
+                
+                if (!editorElement) {
+                    console.warn('Thank Donor editor element not found:', editorId);
+                    return;
+                }
+                
+                // Check if already initialized
+                if (thankDonorQuill) {
+                    return;
+                }
+                
+                // Create Quill instance
+                const quill = new Quill(editorElement, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic'],
+                            ['link'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }]
+                        ]
+                    },
+                    placeholder: 'Enter body content...'
+                });
+                
+                // Store editor instance
+                thankDonorQuill = quill;
+                
+                // Update thank the donor body on change
+                quill.on('text-change', function() {
+                    thankTheDonor.body = quill.root.innerHTML;
+                    updateOutputRealTime(); // Real-time update
+                });
+                
+                // Set initial content if exists
+                if (thankTheDonor.body) {
+                    quill.root.innerHTML = thankTheDonor.body;
+                }
+            } catch (error) {
+                console.error('Error initializing Thank Donor Quill:', error);
+            }
+        }
+
+        function addEmployeeSpotlightQuestion() {
+            employeeSpotlight.questions.push({question: '', answer: ''});
+            renderEmployeeSpotlightQuestions();
+            updateOutputRealTime();
+        }
+
+        function removeEmployeeSpotlightQuestion(index) {
+            // Allow removing questions even if it's the last one (user can add more)
+            employeeSpotlight.questions.splice(index, 1);
+            renderEmployeeSpotlightQuestions();
+            updateOutputRealTime();
+        }
+
+        function updateEmployeeSpotlightQuestion(index, field, value) {
+            employeeSpotlight.questions[index][field] = value;
+            updateOutputRealTime();
+        }
+
+        function renderEmployeeSpotlightQuestions() {
+            const container = document.getElementById('employeeSpotlightQuestions');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            employeeSpotlight.questions.forEach((qa, index) => {
+                const qaDiv = document.createElement('div');
+                qaDiv.className = 'employee-spotlight-qa';
+                qaDiv.style.cssText = 'margin-bottom: 16px; padding: 16px; background: #f6f7f9; border-radius: 8px;';
+                
+                const questionGroup = document.createElement('div');
+                questionGroup.className = 'form-group';
+                questionGroup.style.cssText = 'margin-bottom: 12px;';
+                
+                const questionLabel = document.createElement('label');
+                questionLabel.className = 'required';
+                questionLabel.textContent = 'Question ' + (index + 1);
+                questionGroup.appendChild(questionLabel);
+                
+                const questionInput = document.createElement('input');
+                questionInput.type = 'text';
+                questionInput.value = qa.question || '';
+                questionInput.placeholder = 'Enter question';
+                questionInput.style.cssText = 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;';
+                questionInput.oninput = function() {
+                    updateEmployeeSpotlightQuestion(index, 'question', this.value);
+                };
+                questionGroup.appendChild(questionInput);
+                
+                const answerGroup = document.createElement('div');
+                answerGroup.className = 'form-group';
+                answerGroup.style.cssText = 'margin-bottom: 0;';
+                
+                const answerLabel = document.createElement('label');
+                answerLabel.className = 'required';
+                answerLabel.textContent = 'Answer ' + (index + 1);
+                answerGroup.appendChild(answerLabel);
+                
+                const answerInput = document.createElement('input');
+                answerInput.type = 'text';
+                answerInput.value = qa.answer || '';
+                answerInput.placeholder = 'Enter answer';
+                answerInput.style.cssText = 'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;';
+                answerInput.oninput = function() {
+                    updateEmployeeSpotlightQuestion(index, 'answer', this.value);
+                };
+                answerGroup.appendChild(answerInput);
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-danger btn-small';
+                removeBtn.textContent = 'Remove';
+                removeBtn.style.cssText = 'margin-top: 8px;';
+                removeBtn.onclick = function() {
+                    removeEmployeeSpotlightQuestion(index);
+                };
+                
+                qaDiv.appendChild(questionGroup);
+                qaDiv.appendChild(answerGroup);
+                qaDiv.appendChild(removeBtn);
+                
+                container.appendChild(qaDiv);
+            });
         }
 
         function addArticle() {
@@ -163,14 +532,8 @@
                 console.log('Article added, total articles:', articles.length);
 
                 renderArticles();
-                
-                // Initialize Quill after a short delay to ensure DOM is ready
-                setTimeout(function() {
-                    initQuill(articleId);
-                    updateOutputRealTime(); // Real-time update after adding article
-                }, 100);
-                
                 setupDragDrop();
+                updateOutputRealTime(); // Real-time update after adding article
             } catch (error) {
                 console.error('Error adding article:', error);
                 alert('Error adding article: ' + error.message);
@@ -192,27 +555,60 @@
             articles.splice(index, 1);
             renderArticles();
             setupDragDrop();
-            
-            // Reinitialize Quill for remaining articles
-            articles.forEach((art, idx) => {
-                initQuill(art.id);
-            });
-            
             updateOutputRealTime(); // Real-time update after removing article
         }
 
         function addGalleryImage(articleIndex) {
             articles[articleIndex].galleryUrls.push('');
             renderArticles();
-            initQuill(articles[articleIndex].id);
             updateOutputRealTime(); // Real-time update
         }
 
         function removeGalleryImage(articleIndex, imageIndex) {
             articles[articleIndex].galleryUrls.splice(imageIndex, 1);
             renderArticles();
-            initQuill(articles[articleIndex].id);
             updateOutputRealTime(); // Real-time update
+        }
+
+        function handleGalleryUpload(articleIndex, files) {
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            // Get publication date and format as MMDDYYYY
+            const dateInput = document.getElementById('publicationDate');
+            const dateString = dateInput ? dateInput.value : '';
+            const datePath = formatDateMMDDYYYY(dateString);
+            
+            // Base URL for images
+            const baseUrl = 'https://www.bloodcenter.org/webres/Image/FGN/' + datePath + '/';
+            
+            // Extract filenames and construct URLs
+            const newUrls = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileName = file.name;
+                // URL encode the filename in case it has special characters
+                const encodedFileName = encodeURIComponent(fileName);
+                const fullUrl = baseUrl + encodedFileName;
+                newUrls.push(fullUrl);
+            }
+            
+            // Add all new URLs to the article's gallery
+            if (!articles[articleIndex].galleryUrls) {
+                articles[articleIndex].galleryUrls = [];
+            }
+            articles[articleIndex].galleryUrls = articles[articleIndex].galleryUrls.concat(newUrls);
+            
+            // Clear the file input
+            const fileInput = document.getElementById('gallery-upload-' + articles[articleIndex].id);
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            
+            // Re-render articles to show new URLs
+            renderArticles();
+            updateOutputRealTime();
         }
 
         function renderArticles() {
@@ -221,6 +617,18 @@
                 console.error('articlesContainer not found!');
                 return;
             }
+            
+            // Save content from existing Quill editors before clearing
+            articles.forEach(function(article) {
+                if (quillEditors[article.id]) {
+                    // Save the current content from the Quill editor
+                    article.body = quillEditors[article.id].root.innerHTML;
+                    // Destroy the Quill instance
+                    quillEditors[article.id] = null;
+                    delete quillEditors[article.id];
+                }
+            });
+            
             container.innerHTML = '';
 
             articles.forEach((article, index) => {
@@ -240,7 +648,7 @@
                 var galleryHtml = '';
                 article.galleryUrls.forEach(function(url, imgIndex) {
                     galleryHtml += '<div class="gallery-item">';
-                    galleryHtml += '<input type="text" value="' + escapeHtml(url) + '" oninput="updateGalleryImage(' + index + ', ' + imgIndex + ', this.value)" placeholder="Enter gallery image URL">';
+                    galleryHtml += '<input type="text" value="' + escapeHtml(url) + '" oninput="updateGalleryImage(' + index + ', ' + imgIndex + ', this.value)" placeholder="Enter image path (e.g., /webres/Image/FGN/10242025/image.jpg)">';
                     galleryHtml += '<button type="button" class="btn btn-danger btn-small" onclick="removeGalleryImage(' + index + ', ' + imgIndex + ')">Remove</button>';
                     galleryHtml += '</div>';
                 });
@@ -250,7 +658,9 @@
                 html += '<div class="article-header" onclick="toggleArticle(' + index + ')">';
                 html += '<div class="article-header-left">';
                 html += '<span class="article-toggle">▼</span>';
-                html += '<span class="article-number">Article ' + order + '</span>';
+                // Use article title if available, otherwise fall back to "Article X"
+                const headerText = article.title && article.title.trim() ? escapeHtml(article.title.trim()) : 'Article ' + order;
+                html += '<span class="article-number" id="article-number-' + article.id + '">' + headerText + '</span>';
                 html += '</div>';
                 html += '<div class="article-actions" onclick="event.stopPropagation()">';
                 html += '<span class="drag-handle" title="Drag to reorder">⋮⋮</span>';
@@ -261,10 +671,11 @@
                 html += '<input type="text" id="title-' + article.id + '" value="' + escapeHtml(article.title) + '" oninput="updateArticle(' + index + ', &quot;title&quot;, this.value)" placeholder="Enter article title">';
                 html += '<div class="error">Title is required</div></div>';
                 html += '<div class="form-group"><label class="required">Body Content</label>';
-                html += '<div id="body-' + article.id + '" class="quill-editor">' + escapeHtml(article.body) + '</div>';
+                // Don't escape HTML here - Quill will handle it, but we need to set it as innerHTML after Quill is initialized
+                html += '<div id="body-' + article.id + '" class="quill-editor"></div>';
                 html += '<div class="error">Body content is required</div></div>';
                 html += '<div class="form-group"><label>Image URL</label>';
-                html += '<input type="text" id="imageUrl-' + article.id + '" value="' + escapeHtml(article.imageUrl) + '" oninput="updateArticle(' + index + ', &quot;imageUrl&quot;, this.value); validateImageAlt(' + index + ')" placeholder="Enter image URL">';
+                html += '<input type="text" id="imageUrl-' + article.id + '" value="' + escapeHtml(article.imageUrl) + '" oninput="updateArticle(' + index + ', &quot;imageUrl&quot;, this.value); validateImageAlt(' + index + ')" placeholder="Enter image path (e.g., /webres/Image/FGN/10242025/image.jpg)">';
                 html += '</div>';
                 html += '<div class="form-group"><label id="imageAltLabel-' + article.id + '">Image Alt Text</label>';
                 html += '<input type="text" id="imageAlt-' + article.id + '" value="' + escapeHtml(article.imageAlt) + '" oninput="updateArticle(' + index + ', &quot;imageAlt&quot;, this.value)" placeholder="Enter image alt text">';
@@ -275,7 +686,11 @@
                 html += '<div class="gallery-section">';
                 html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">';
                 html += '<label style="margin: 0;">Gallery Images</label>';
+                html += '<div style="display: flex; gap: 8px;">';
                 html += '<button type="button" class="btn btn-secondary btn-small" onclick="addGalleryImage(' + index + ')">+ Add Gallery Image</button>';
+                html += '<label for="gallery-upload-' + article.id + '" class="btn btn-secondary btn-small" style="margin: 0; cursor: pointer;">📁 Upload Files</label>';
+                html += '<input type="file" id="gallery-upload-' + article.id + '" multiple accept="image/*" style="display: none;" onchange="handleGalleryUpload(' + index + ', this.files)">';
+                html += '</div>';
                 html += '</div>';
                 html += '<div id="gallery-' + article.id + '">' + galleryHtml + '</div>';
                 html += '</div>';
@@ -290,6 +705,18 @@
 
                 container.appendChild(articleDiv);
             });
+            
+            // Reinitialize all Quill editors after rendering
+            setTimeout(function() {
+                articles.forEach(function(article) {
+                    initQuill(article.id);
+                });
+                
+                // Re-render Thank the Donor section if enabled
+                if (thankTheDonor.enabled) {
+                    renderThankDonor();
+                }
+            }, 50);
         }
 
         function toggleArticle(index) {
@@ -307,12 +734,46 @@
         }
 
         function updateArticle(index, field, value) {
+            // Normalize image URLs
+            if (field === 'imageUrl' && value) {
+                value = normalizeImageUrl(value);
+                // Update the input field with normalized value
+                const article = articles[index];
+                const input = document.getElementById('imageUrl-' + article.id);
+                if (input && input.value !== value) {
+                    input.value = value;
+                }
+            }
             articles[index][field] = value;
+            
+            // Update article header text when title changes
+            if (field === 'title') {
+                const article = articles[index];
+                const headerElement = document.getElementById('article-number-' + article.id);
+                if (headerElement) {
+                    const order = index + 1;
+                    headerElement.textContent = value && value.trim() ? value.trim() : 'Article ' + order;
+                }
+            }
+            
             validateForm();
             updateOutputRealTime(); // Real-time update
         }
 
         function updateGalleryImage(articleIndex, imageIndex, value) {
+            // Normalize gallery image URLs
+            if (value) {
+                value = normalizeImageUrl(value);
+                // Update the input field with normalized value
+                const article = articles[articleIndex];
+                const galleryContainer = document.getElementById('gallery-' + article.id);
+                if (galleryContainer) {
+                    const inputs = galleryContainer.querySelectorAll('input[type="text"]');
+                    if (inputs[imageIndex] && inputs[imageIndex].value !== value) {
+                        inputs[imageIndex].value = value;
+                    }
+                }
+            }
             articles[articleIndex].galleryUrls[imageIndex] = value;
             updateOutputRealTime(); // Real-time update
         }
@@ -324,7 +785,11 @@
             const imageAltLabel = document.getElementById('imageAltLabel-' + article.id);
             const formGroup = imageAltInput.closest('.form-group');
 
-            if (imageUrlInput.value.trim()) {
+            // Check if gallery images exist - if so, Image URL field is not required
+            const hasGalleryImages = article.galleryUrls && article.galleryUrls.length > 0 && article.galleryUrls.some(url => url && url.trim());
+            
+            // Only require Image Alt if Image URL has a value AND no gallery images exist
+            if (imageUrlInput.value.trim() && !hasGalleryImages) {
                 imageAltLabel.classList.add('required');
                 if (!imageAltInput.value.trim()) {
                     formGroup.classList.add('has-error');
@@ -332,6 +797,7 @@
                     formGroup.classList.remove('has-error');
                 }
             } else {
+                // If gallery images exist or Image URL is empty, Image Alt is not required
                 imageAltLabel.classList.remove('required');
                 formGroup.classList.remove('has-error');
             }
@@ -443,60 +909,6 @@
             }
         }
 
-        function initEmployeeSpotlightQuill() {
-            // Wait for Quill to be available
-            if (typeof Quill === 'undefined') {
-                console.warn('Quill not loaded yet, retrying...');
-                setTimeout(function() {
-                    initEmployeeSpotlightQuill();
-                }, 500);
-                return;
-            }
-            
-            try {
-                const editorId = 'employeeSpotlightContent';
-                const editorElement = document.getElementById(editorId);
-                
-                if (!editorElement) {
-                    console.warn('Employee Spotlight editor element not found:', editorId);
-                    return;
-                }
-                
-                // Check if already initialized
-                if (employeeSpotlightQuill) {
-                    return;
-                }
-                
-                // Create Quill instance
-                const quill = new Quill(editorElement, {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: [
-                            ['bold', 'italic'],
-                            ['link'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }]
-                        ]
-                    },
-                    placeholder: 'Enter article body content...'
-                });
-                
-                // Store editor instance
-                employeeSpotlightQuill = quill;
-                
-                // Update employee spotlight content on change
-                quill.on('text-change', function() {
-                    employeeSpotlight.content = quill.root.innerHTML;
-                    updateOutputRealTime(); // Real-time update
-                });
-                
-                // Set initial content if exists (currently empty, so placeholder will show)
-                if (employeeSpotlight.content) {
-                    quill.root.innerHTML = employeeSpotlight.content;
-                }
-            } catch (error) {
-                console.error('Error initializing Employee Spotlight Quill:', error);
-            }
-        }
 
         function slugify(text) {
             return text
@@ -514,6 +926,33 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Normalize image URLs to always start with https://www.bloodcenter.org
+        function normalizeImageUrl(url) {
+            if (!url || !url.trim()) {
+                return '';
+            }
+            
+            url = url.trim();
+            
+            // If it already starts with http:// or https://, return as-is
+            if (url.match(/^https?:\/\//i)) {
+                return url;
+            }
+            
+            // If it starts with //, prepend https:
+            if (url.startsWith('//')) {
+                return 'https:' + url;
+            }
+            
+            // If it starts with /, prepend the domain
+            if (url.startsWith('/')) {
+                return 'https://www.bloodcenter.org' + url;
+            }
+            
+            // Otherwise, prepend the domain with a slash
+            return 'https://www.bloodcenter.org/' + url;
         }
 
         function convertToEmbedUrl(url) {
@@ -571,35 +1010,45 @@
             // Replace publication date placeholder
             const datePattern = '\\$FORMVALUE_PUBLICATION_DATE';
             output = output.replace(new RegExp(datePattern, 'g'), publicationDate || 'October 24, 2025');
+            
+            // Replace schema date placeholders with ISO format date
+            const schemaDatePublished = publicationDateISO || '2025-10-24';
+            const schemaDateModified = publicationDateISO || '2025-10-24';
+            output = output.replace(/\$SCHEMA_DATE_PUBLISHED/g, schemaDatePublished);
+            output = output.replace(/\$SCHEMA_DATE_MODIFIED/g, schemaDateModified);
 
             // Replace Employee Spotlight placeholders
-            // Get content from Quill editor if available
+            // Format questions and answers consistently
             let employeeContent = '';
-            if (employeeSpotlightQuill) {
-                employeeContent = employeeSpotlightQuill.root.innerHTML;
-            } else {
-                employeeContent = employeeSpotlight.content || '';
+            if (employeeSpotlight.questions && employeeSpotlight.questions.length > 0) {
+                const qaPairs = employeeSpotlight.questions
+                    .filter(qa => qa.question && qa.question.trim() && qa.answer && qa.answer.trim())
+                    .map(qa => {
+                        return '<strong>' + escapeHtml(qa.question.trim()) + '</strong><br>' + escapeHtml(qa.answer.trim());
+                    });
+                employeeContent = qaPairs.join('<br><br>');
             }
             
             output = output.replace(/\$EMPLOYEE_SPOTLIGHT_NAME/g, escapeHtml(employeeSpotlight.name || ''));
             output = output.replace(/\$EMPLOYEE_SPOTLIGHT_TITLE/g, escapeHtml(employeeSpotlight.title || ''));
-            output = output.replace(/\$EMPLOYEE_SPOTLIGHT_URL/g, escapeHtml(employeeSpotlight.imageUrl || ''));
+            output = output.replace(/\$EMPLOYEE_SPOTLIGHT_URL/g, escapeHtml(normalizeImageUrl(employeeSpotlight.imageUrl || '')));
             output = output.replace(/\$EMPLOYEE_SPOTLIGHT_CONTENT/g, employeeContent);
 
-            // Collect all gallery URLs from all articles
-            const allGalleryUrls = [];
-            articles.forEach(article => {
-                article.galleryUrls.forEach(url => {
-                    if (url.trim()) {
-                        allGalleryUrls.push(url.trim());
-                    }
-                });
-            });
-
-            // Get first article's image ID for gallery script
-            let firstImageId = '';
-            if (articles.length > 0 && articles[0].title.trim()) {
-                firstImageId = slugify(articles[0].title);
+            // Find the first article that has gallery URLs (image URL is optional)
+            let galleryArticle = null;
+            let galleryImageId = '';
+            let galleryUrls = [];
+            
+            for (let i = 0; i < articles.length; i++) {
+                const article = articles[i];
+                const hasGallery = article.galleryUrls && article.galleryUrls.some(url => url && url.trim());
+                
+                if (hasGallery) {
+                    galleryArticle = article;
+                    galleryImageId = article.title.trim() ? slugify(article.title) : '';
+                    galleryUrls = article.galleryUrls.filter(url => url && url.trim()).map(url => normalizeImageUrl(url.trim()));
+                    break; // Use the first article that has gallery URLs
+                }
             }
 
             // Remove unused article blocks FIRST (before placeholder replacement)
@@ -651,7 +1100,7 @@
                 
                 // Only replace image/video placeholders if they have values, otherwise remove the entire tag/element
                 if (article.imageUrl.trim()) {
-                    output = output.replace(new RegExp(imageUrlPattern, 'g'), escapeHtml(article.imageUrl));
+                    output = output.replace(new RegExp(imageUrlPattern, 'g'), escapeHtml(normalizeImageUrl(article.imageUrl)));
                     output = output.replace(new RegExp(imageAltPattern, 'g'), escapeHtml(article.imageAlt));
                     output = output.replace(new RegExp(imageIdPattern, 'g'), imageId);
                 } else {
@@ -690,69 +1139,108 @@
             // Remove empty media divs
             output = output.replace(/<div[^>]*class="media[^"]*"[^>]*>\s*<\/div>/g, '');
 
-            // Handle gallery URLs in script - only include if there are gallery URLs
-            if (allGalleryUrls.length > 0) {
-                // Only process gallery script if there are gallery URLs
-                let galleryUrlsString = allGalleryUrls.map(function(url) {
-                    return '"' + escapeHtml(url) + '"';
-                }).join(',\n      ');
-                
-                // Find and replace the formImages array
-                const formImagesStart = output.indexOf('const formImages = [');
-                const formImagesEnd = output.indexOf('];', formImagesStart);
-                if (formImagesStart !== -1 && formImagesEnd !== -1) {
-                    const before = output.substring(0, formImagesStart);
-                    const after = output.substring(formImagesEnd + 2);
-                    output = before + 'const formImages = [\n      ' + galleryUrlsString + '\n    ];' + after;
-                }
-
-                // Update gallery image ID reference
-                if (firstImageId) {
-                    output = output.replace(/\$FORMVALUE_IMAGE_GALLERY_ID_01/g, firstImageId);
-                    // Fix the template bug: adamImg vs formImg
-                    output = output.replace(/const adamImg = document\.getElementById/, 'const formImg = document.getElementById');
-                }
-            } else {
-                // Remove the entire gallery script block if there are no gallery URLs
-                // Find the script block containing "Form Gallery"
+            // Handle gallery URLs - create a script for EACH article that has gallery images
+            // First, remove the old single gallery script
                 const formGalleryMarker = '// Form Gallery';
                 const formGalleryIndex = output.indexOf(formGalleryMarker);
                 if (formGalleryIndex !== -1) {
-                    // Find the opening <script> tag before this (go backwards from the marker)
                     let scriptStart = output.lastIndexOf('<script>', formGalleryIndex);
-                    // If not found, try searching for the script tag that contains this marker
                     if (scriptStart === -1) {
-                        // Search backwards more carefully
-                        let searchPos = formGalleryIndex;
-                        while (searchPos > 0 && scriptStart === -1) {
-                            searchPos = output.lastIndexOf('<script>', searchPos - 1);
-                            if (searchPos !== -1) {
-                                // Check if this script tag contains our marker
+                    scriptStart = output.lastIndexOf('<script', formGalleryIndex);
+                }
                                 const scriptEndTag = '</' + 'script>';
-                                const nextScriptEnd = output.indexOf(scriptEndTag, searchPos);
-                                if (nextScriptEnd > formGalleryIndex) {
-                                    scriptStart = searchPos;
-                                    break;
-                                }
+                const scriptEnd = output.indexOf(scriptEndTag, formGalleryIndex);
+                if (scriptStart !== -1 && scriptEnd !== -1) {
+                    output = output.substring(0, scriptStart) + output.substring(scriptEnd + 9);
+                }
+            }
+            
+            // Now create gallery scripts for each article that has gallery images
+            // Find where to insert the scripts (before the "Hide on-page banner" script)
+            const hideBannerMarker = '// Hide on-page banner and footer';
+            const hideBannerIndex = output.indexOf(hideBannerMarker);
+            
+            if (hideBannerIndex !== -1) {
+                // Build all gallery scripts
+                let allGalleryScripts = '';
+                articles.forEach(function(article, index) {
+                    const articleGalleryUrls = article.galleryUrls ? article.galleryUrls.filter(url => url && url.trim()).map(url => normalizeImageUrl(url.trim())) : [];
+                    if (articleGalleryUrls.length > 0) {
+                        // Generate image ID - use title if available, otherwise use article number
+                        let articleImageId = article.title.trim() ? slugify(article.title) : '';
+                        if (!articleImageId) {
+                            const articleNumber = String(index + 1).padStart(2, '0');
+                            articleImageId = 'article-' + articleNumber;
+                        }
+                        // Convert hyphens to underscores for valid JS identifier (hyphens aren't valid in JS var names)
+                        const jsSafeId = articleImageId.replace(/-/g, '_');
+                        // Ensure jsSafeId is valid (not empty and valid JS identifier)
+                        if (jsSafeId && jsSafeId.length > 0 && /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(jsSafeId)) {
+                            const galleryUrlsString = articleGalleryUrls.map(function(url) {
+                                return '"' + escapeHtml(url) + '"';
+                            }).join(',\n      ');
+                            
+                            // Ensure we have URLs to work with
+                            if (galleryUrlsString && galleryUrlsString.trim().length > 0) {
+                                const scriptParts = [
+                                    'document.addEventListener("DOMContentLoaded", function() {',
+                                    '    // Gallery for: ' + escapeHtml(article.title),
+                                    '    const formImages_' + jsSafeId + ' = [',
+                                    '      ' + galleryUrlsString,
+                                    '    ];',
+                                    '    let formIndex_' + jsSafeId + ' = 0;',
+                                    '    ',
+                                    '    function initGallery_' + jsSafeId + '() {',
+                                    '      const formImg = document.getElementById("' + articleImageId + '");',
+                                    '      if (formImg && formImages_' + jsSafeId + '.length > 0) {',
+                                    '        if (!formImg.src || formImg.src === "") {',
+                                    '          formImg.src = formImages_' + jsSafeId + '[0];',
+                                    '        }',
+                                    '        ',
+                                    '        setInterval(function () {',
+                                    '          formImg.style.opacity = 0;',
+                                    '          setTimeout(function() {',
+                                    '            formIndex_' + jsSafeId + ' = (formIndex_' + jsSafeId + ' + 1) % formImages_' + jsSafeId + '.length;',
+                                    '            formImg.src = formImages_' + jsSafeId + '[formIndex_' + jsSafeId + '];',
+                                    '            formImg.style.opacity = 1;',
+                                    '          }, 1000);',
+                                    '        }, 5000);',
+                                    '      } else if (formImages_' + jsSafeId + '.length > 0) {',
+                                    '        setTimeout(initGallery_' + jsSafeId + ', 100);',
+                                    '      }',
+                                    '    }',
+                                    '    ',
+                                    '    initGallery_' + jsSafeId + '();',
+                                    '  });'
+                                ];
+                                const scriptTagOpen = '<' + 'script>';
+                                const scriptTagClose = '</' + 'script>';
+                                allGalleryScripts += scriptTagOpen + '\n  ' + scriptParts.join('\n') + '\n' + scriptTagClose + '\n';
                             }
                         }
                     }
-                    
-                    // Find the closing script tag after the marker
-                    const scriptEndTag = '</' + 'script>';
-                    const scriptEnd = output.indexOf(scriptEndTag, formGalleryIndex);
-                    
-                    if (scriptStart !== -1 && scriptEnd !== -1) {
-                        // Remove the entire script block
-                        output = output.substring(0, scriptStart) + output.substring(scriptEnd + 9);
+                });
+                
+                // Insert all gallery scripts before the "Hide on-page banner" script
+                if (allGalleryScripts) {
+                    // Find the script tag start for the hide banner script
+                    let bannerScriptStart = output.lastIndexOf('<script>', hideBannerIndex);
+                    if (bannerScriptStart === -1) {
+                        bannerScriptStart = output.lastIndexOf('<script', hideBannerIndex);
+                    }
+                    if (bannerScriptStart !== -1) {
+                        output = output.substring(0, bannerScriptStart) + allGalleryScripts + output.substring(bannerScriptStart);
+                    } else {
+                        // If we can't find the script tag, insert before the marker
+                        output = output.substring(0, hideBannerIndex) + allGalleryScripts + output.substring(hideBannerIndex);
                     }
                 }
             }
 
             // Note: Unused article blocks were already removed above, before placeholder replacement
 
-            // Update gallery URL placeholders (remove unused ones)
-            for (let i = allGalleryUrls.length + 1; i <= 99; i++) {
+            // Update gallery URL placeholders (remove unused ones) - clean up any remaining placeholders
+            for (let i = 1; i <= 99; i++) {
                 const num = String(i).padStart(2, '0');
                 const galleryUrlPattern = '\\$FORMVALUE_IMAGE_GALLERY_URL_' + num;
                 output = output.replace(new RegExp(galleryUrlPattern, 'g'), '');
@@ -773,12 +1261,42 @@
                     bodyContent = bodyElement ? bodyElement.innerHTML : '';
                 }
 
-                const imageId = article.title.trim() ? slugify(article.title) : '';
+                // Generate image ID - use title if available, otherwise use article number as fallback
+                let imageId = article.title.trim() ? slugify(article.title) : '';
+                // If no imageId from title but we have gallery images, use article number as ID
+                const hasGalleryImages = article.galleryUrls && article.galleryUrls.length > 0 && article.galleryUrls.some(url => url && url.trim());
+                if (!imageId && hasGalleryImages) {
+                    imageId = 'article-' + articleNumber;
+                }
                 
                 let mediaContent = '';
-                // Only add image if URL has a value
-                if (article.imageUrl && article.imageUrl.trim()) {
-                    mediaContent += '<img class="masonry-image" alt="' + escapeHtml(article.imageAlt) + '" id="' + imageId + '" src="' + escapeHtml(article.imageUrl) + '" />';
+                // Add image if URL has a value OR if there are gallery images
+                // IMPORTANT: Gallery images ALWAYS take priority - if gallery images exist, ignore Image URL field
+                const hasImageUrl = article.imageUrl && article.imageUrl.trim();
+                
+                // If gallery images exist, use them exclusively and ignore Image URL field
+                if (hasGalleryImages) {
+                    // Use gallery images - ignore Image URL field completely
+                    const firstGalleryImage = article.galleryUrls.find(url => url && url.trim());
+                    if (firstGalleryImage) {
+                        const imageSrc = normalizeImageUrl(firstGalleryImage.trim());
+                        let imageAlt = article.imageAlt || '';
+                        if (!imageAlt && article.title) {
+                            imageAlt = article.title;
+                        }
+                        const finalImageId = imageId || 'article-' + articleNumber;
+                        mediaContent += '<img class="masonry-image" alt="' + escapeHtml(imageAlt) + '" id="' + finalImageId + '" src="' + escapeHtml(imageSrc) + '" />';
+                    }
+                } else if (hasImageUrl) {
+                    // Only use Image URL if NO gallery images exist
+                    const imageSrc = normalizeImageUrl(article.imageUrl);
+                    const imageAlt = article.imageAlt || '';
+                    const finalImageId = imageId || '';
+                    if (finalImageId) {
+                        mediaContent += '<img class="masonry-image" alt="' + escapeHtml(imageAlt) + '" id="' + finalImageId + '" src="' + escapeHtml(imageSrc) + '" />';
+                    } else {
+                        mediaContent += '<img class="masonry-image" alt="' + escapeHtml(imageAlt) + '" src="' + escapeHtml(imageSrc) + '" />';
+                    }
                 }
                 // Only add video if URL has a value
                 if (article.videoUrl && article.videoUrl.trim()) {
@@ -789,7 +1307,7 @@
 
                 // Determine media class based on what's actually present
                 let mediaClass = '';
-                const hasImage = article.imageUrl && article.imageUrl.trim();
+                const hasImage = hasImageUrl || hasGalleryImages;
                 const hasVideo = article.videoUrl && article.videoUrl.trim();
                 if (hasImage && hasVideo) {
                     mediaClass = ''; // Both present - use default grid
@@ -815,6 +1333,103 @@
             const newMainGrid = '<div class="main-grid">\n' + allArticlesHtml + '\n</div>';
 
             output = output.replace(mainGridRegex, newMainGrid);
+
+            // Add Thank the Donor section and wrap with Employee Spotlight if enabled
+            if (thankTheDonor.enabled && thankTheDonor.title && thankTheDonor.title.trim()) {
+                // Get body content from Quill editor if available
+                let thankDonorBody = '';
+                if (thankDonorQuill) {
+                    thankDonorBody = thankDonorQuill.root.innerHTML;
+                } else {
+                    // Try to get from the editor element if Quill isn't initialized yet
+                    const editorElement = document.getElementById('thankDonorContent');
+                    if (editorElement) {
+                        thankDonorBody = editorElement.innerHTML;
+                    } else {
+                        thankDonorBody = thankTheDonor.body || '';
+                    }
+                }
+                
+                let thankDonorMediaHtml = '';
+                if (thankTheDonor.imageUrl && thankTheDonor.imageUrl.trim()) {
+                    const imageSrc = normalizeImageUrl(thankTheDonor.imageUrl);
+                    const imageAlt = thankTheDonor.imageAlt || thankTheDonor.title;
+                    thankDonorMediaHtml = '<div class="media single">\n        <img class="masonry-image" alt="' + escapeHtml(imageAlt) + '" src="' + escapeHtml(imageSrc) + '" />\n      </div>';
+                }
+                
+                const thankDonorHtml = '\n<!-- Thank the Donor -->\n<section class="thank-donor-section masonry-item" style="background: #f4b322; color: #fff; border-radius: var(--radius); padding: 22px 20px; box-shadow: 0 2px 10px rgba(12,42,74,.06);">\n  <h2 style="color: #fff; font-family: \'Roboto Condensed\', Helvetica, sans-serif; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">' + escapeHtml(thankTheDonor.title) + '</h2>\n  <p style="color: #fff;">' + thankDonorBody + '</p>\n  ' + thankDonorMediaHtml + '\n</section>\n';
+                
+                // Find Employee Spotlight section and wrap both in a side-by-side container
+                // The Employee Spotlight is after the main-grid closes, so we need to find it and move it inside main-grid
+                const employeeSpotlightPattern = /<!-- Employee Spotlight -->\s*<section class="callout bottom-spotlight"([^>]*)>([\s\S]*?)<\/section>/;
+                if (employeeSpotlightPattern.test(output)) {
+                    const match = output.match(employeeSpotlightPattern);
+                    const employeeSpotlightContent = match[2];
+                    
+                    // Build side-by-side container HTML
+                    // Use column-span: all to break out of masonry columns, then use CSS Grid for side-by-side layout
+                    const sideBySideHtml = '\n<!-- Side-by-Side Container for Thank the Donor and Employee Spotlight -->\n<div class="side-by-side-container" style="column-span: all; -webkit-column-span: all; display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); margin-top: var(--gap); width: 100%; break-inside: avoid;">\n' + thankDonorHtml + '\n<!-- Employee Spotlight -->\n<section class="callout bottom-spotlight" style="margin: 0;">' + employeeSpotlightContent + '</section>\n</div>\n';
+                    
+                    // Replace Employee Spotlight with empty string, then insert side-by-side container before main-grid closes
+                    // Pattern: find </div> that closes main-grid (right before Employee Spotlight)
+                    // We'll replace: </div>\n<!-- Employee Spotlight -->... with </div>\n[side-by-side]\n
+                    // But we need to insert INSIDE main-grid, so find where main-grid closes
+                    const replacePattern = /(<\/div>\s*)<!-- Employee Spotlight -->\s*<section class="callout bottom-spotlight"([^>]*)>([\s\S]*?)<\/section>/;
+                    if (replacePattern.test(output)) {
+                        // Insert the side-by-side container INSIDE main-grid before it closes
+                        // The pattern matches </div> (closes main-grid) followed by Employee Spotlight
+                        // We want: </div> (closes sidebar) + [side-by-side] + </div> (closes main-grid)
+                        // So we need to insert BEFORE the </div> that closes main-grid
+                        const beforeEmployeeSpotlight = output.indexOf('<!-- Employee Spotlight -->');
+                        if (beforeEmployeeSpotlight !== -1) {
+                            // Find the </div> that closes main-grid (should be right before Employee Spotlight)
+                            const beforeSection = output.substring(0, beforeEmployeeSpotlight);
+                            const lastDivIndex = beforeSection.lastIndexOf('</div>');
+                            
+                            if (lastDivIndex !== -1) {
+                                // Remove Employee Spotlight first
+                                output = output.replace(employeeSpotlightPattern, '');
+                                
+                                // Insert side-by-side container before main-grid closes
+                                const beforeMainGridClose = output.substring(0, lastDivIndex);
+                                const afterMainGridClose = output.substring(lastDivIndex);
+                                output = beforeMainGridClose + sideBySideHtml + afterMainGridClose;
+                            } else {
+                                // Fallback: use the replace pattern
+                                output = output.replace(replacePattern, '$1' + sideBySideHtml);
+                            }
+                        } else {
+                            // Fallback: use the replace pattern
+                            output = output.replace(replacePattern, '$1' + sideBySideHtml);
+                        }
+                    } else {
+                        // Fallback: remove Employee Spotlight and insert before Footer
+                        output = output.replace(employeeSpotlightPattern, '');
+                        const beforeFooterPattern = /<\/div>\s*<!-- Footer -->/;
+                        if (beforeFooterPattern.test(output)) {
+                            output = output.replace(beforeFooterPattern, sideBySideHtml + '</div>\n<!-- Footer -->');
+                        }
+                    }
+                } else {
+                    // If pattern not found, insert before the closing </div> before footer
+                    const beforeFooterPattern = /<\/div>\s*<!-- Footer -->/;
+                    if (beforeFooterPattern.test(output)) {
+                        output = output.replace(beforeFooterPattern, thankDonorHtml + '</div>\n<!-- Footer -->');
+                    }
+                }
+            } else {
+                // When Thank the Donor is not present, ensure Employee Spotlight spans full width
+                const employeeSpotlightPattern = /<!-- Employee Spotlight -->\s*<section class="callout bottom-spotlight"([^>]*)>/;
+                if (employeeSpotlightPattern.test(output)) {
+                    output = output.replace(employeeSpotlightPattern, function(match, attrs) {
+                        // Ensure grid-column: 1 / -1 for full width
+                        if (!attrs.includes('grid-column')) {
+                            return '<!-- Employee Spotlight -->\n<section class="callout bottom-spotlight" style="grid-column: 1 / -1; order: 5;">';
+                        }
+                        return match;
+                    });
+                }
+            }
 
             // Store output in hidden element for copying
             let codeOutputEl = document.getElementById('codeOutput');
@@ -927,12 +1542,6 @@
 
                 renderArticles();
                 setupDragDrop();
-                
-                // Reinitialize Quill
-                articles.forEach(article => {
-                    initQuill(article.id);
-                });
-                
                 updateOutputRealTime(); // Real-time update after reorder
             }
 
