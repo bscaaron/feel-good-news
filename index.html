@@ -134,12 +134,21 @@
             visibility: visible;
             opacity: 1;
         }
+        .instructions-btn:hover {
+            background: #f4f4f4 !important;
+            color: #0c2a4a !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>FGN Builder</h1>
+        <div class="header" style="display: flex; align-items: center; justify-content: space-between;">
+            <h1 style="margin: 0;">FGN Builder</h1>
+            <button type="button" class="instructions-btn" onclick="showInstructionsModal()" style="padding: 8px 16px; background: white; color: #0c2a4a; border: 2px solid white; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s ease;">
+                📖 View Instructions
+            </button>
         </div>
 
         <div class="main-content-wrapper">
@@ -182,6 +191,19 @@
                         <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
                             <button type="button" class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
                             <button type="button" class="btn btn-primary" onclick="importHtml()" style="background: #0c2a4a; color: white;">Import</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions Modal -->
+                <div id="instructionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; overflow-y: auto;" onclick="if(event.target.id === 'instructionsModal') closeInstructionsModal();">
+                    <div style="max-width: 900px; margin: 20px auto; background: white; padding: 32px; border-radius: 8px; position: relative; max-height: calc(100vh - 40px);" onclick="event.stopPropagation();">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid #e0e0e0; padding-bottom: 16px;">
+                            <h1 style="margin: 0; color: #0c2a4a; font-size: 28px;">Feel Good News Template Builder - Work Instructions</h1>
+                            <button type="button" onclick="closeInstructionsModal()" style="background: none; border: none; font-size: 24px; color: #666; cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 32px;">&times;</button>
+                        </div>
+                        <div id="instructionsContent" style="overflow-y: auto; max-height: calc(100vh - 180px); padding-right: 8px;">
+                            <!-- Instructions content will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -284,7 +306,7 @@
                     employeeSpotlight.questions = [
                         {question: 'Time at ImpactLife', answer: ''},
                         {question: 'Blood Type', answer: 'O Positive'},
-                        {question: 'What runs thru your veins?', answer: ''},
+                        {question: 'What runs through your veins?', answer: ''},
                         {question: 'What\'s your favorite thing about being part of our team?', answer: ''},
                         {question: 'When you are not at work you can be found?', answer: ''}
                     ];
@@ -658,7 +680,7 @@
                     return;
                 }
                 
-                // Create Quill instance
+                // Create Quill instance with clipboard sanitization
                 const quill = new Quill(editorElement, {
                     theme: 'snow',
                     modules: {
@@ -666,13 +688,67 @@
                             ['bold', 'italic'],
                             ['link'],
                             [{ 'list': 'ordered'}, { 'list': 'bullet' }]
-                        ]
+                        ],
+                        clipboard: {
+                            // Strip all inline styles and only preserve semantic formatting
+                            matchVisual: false
+                        }
                     },
                     placeholder: 'Enter body content...'
                 });
                 
                 // Store editor instance
                 thankDonorQuill = quill;
+                
+                // Add paste handler to strip inline styles from pasted content
+                // Attach to Quill's editor root element for better reliability
+                const quillEditor = quill.root;
+                quillEditor.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const clipboardData = e.clipboardData || window.clipboardData;
+                    const pastedHtml = clipboardData.getData('text/html');
+                    const pastedText = clipboardData.getData('text/plain');
+                    
+                    if (pastedHtml) {
+                        // Create a temporary div to parse and clean the HTML
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = pastedHtml;
+                        
+                        // Remove all inline styles and unwanted attributes
+                        const allElements = tempDiv.querySelectorAll('*');
+                        allElements.forEach(function(el) {
+                            // Remove style attribute
+                            el.removeAttribute('style');
+                            // Remove class attributes (except Quill's own)
+                            if (el.hasAttribute('class')) {
+                                const classes = el.getAttribute('class');
+                                if (classes && !classes.includes('ql-')) {
+                                    el.removeAttribute('class');
+                                }
+                            }
+                            // Remove other styling attributes
+                            el.removeAttribute('color');
+                            el.removeAttribute('face');
+                            el.removeAttribute('size');
+                            el.removeAttribute('bgcolor');
+                        });
+                        
+                        // Get cleaned HTML
+                        const cleanedHtml = tempDiv.innerHTML;
+                        
+                        // Get current selection
+                        const selection = quill.getSelection(true);
+                        const index = selection ? selection.index : quill.getLength();
+                        
+                        // Insert cleaned content into Quill at current cursor position
+                        quill.clipboard.dangerouslyPasteHTML(index, cleanedHtml);
+                    } else if (pastedText) {
+                        // Plain text fallback - insert at current cursor
+                        const selection = quill.getSelection(true);
+                        const index = selection ? selection.index : quill.getLength();
+                        quill.insertText(index, pastedText);
+                    }
+                });
                 
                 // Update thank the donor body on change
                 quill.on('text-change', function() {
@@ -1161,7 +1237,7 @@
                     return;
                 }
                 
-                // Create Quill instance
+                // Create Quill instance with clipboard sanitization
                 const quill = new Quill(editorElement, {
                     theme: 'snow',
                     modules: {
@@ -1169,13 +1245,67 @@
                             ['bold', 'italic'],
                             ['link'],
                             [{ 'list': 'ordered'}, { 'list': 'bullet' }]
-                        ]
+                        ],
+                        clipboard: {
+                            // Strip all inline styles and only preserve semantic formatting
+                            matchVisual: false
+                        }
                     },
                     placeholder: 'Enter article body content...'
                 });
                 
                 // Store editor instance
                 quillEditors[articleId] = quill;
+                
+                // Add paste handler to strip inline styles from pasted content
+                // Attach to Quill's editor root element for better reliability
+                const quillEditor = quill.root;
+                quillEditor.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const clipboardData = e.clipboardData || window.clipboardData;
+                    const pastedHtml = clipboardData.getData('text/html');
+                    const pastedText = clipboardData.getData('text/plain');
+                    
+                    if (pastedHtml) {
+                        // Create a temporary div to parse and clean the HTML
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = pastedHtml;
+                        
+                        // Remove all inline styles and unwanted attributes
+                        const allElements = tempDiv.querySelectorAll('*');
+                        allElements.forEach(function(el) {
+                            // Remove style attribute
+                            el.removeAttribute('style');
+                            // Remove class attributes (except Quill's own)
+                            if (el.hasAttribute('class')) {
+                                const classes = el.getAttribute('class');
+                                if (classes && !classes.includes('ql-')) {
+                                    el.removeAttribute('class');
+                                }
+                            }
+                            // Remove other styling attributes
+                            el.removeAttribute('color');
+                            el.removeAttribute('face');
+                            el.removeAttribute('size');
+                            el.removeAttribute('bgcolor');
+                        });
+                        
+                        // Get cleaned HTML
+                        const cleanedHtml = tempDiv.innerHTML;
+                        
+                        // Get current selection
+                        const selection = quill.getSelection(true);
+                        const index = selection ? selection.index : quill.getLength();
+                        
+                        // Insert cleaned content into Quill at current cursor position
+                        quill.clipboard.dangerouslyPasteHTML(index, cleanedHtml);
+                    } else if (pastedText) {
+                        // Plain text fallback - insert at current cursor
+                        const selection = quill.getSelection(true);
+                        const index = selection ? selection.index : quill.getLength();
+                        quill.insertText(index, pastedText);
+                    }
+                });
                 
                 // Update article body on change
                 quill.on('text-change', function() {
@@ -1764,10 +1894,23 @@
             }
             codeOutputEl.textContent = output;
             
-            // Save current scroll position and focused element before updating preview
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
             const activeElement = document.activeElement;
+            
+            // Determine scroll container (form-section) and save current scroll position
+            let scrollContainer = null;
+            if (activeElement && typeof activeElement.closest === 'function') {
+                scrollContainer = activeElement.closest('.form-section');
+            }
+            if (!scrollContainer) {
+                scrollContainer = document.querySelector('.form-section');
+            }
+            const useWindowScroll = !scrollContainer;
+            const scrollTop = useWindowScroll
+                ? (window.pageYOffset || document.documentElement.scrollTop)
+                : scrollContainer.scrollTop;
+            const scrollLeft = useWindowScroll
+                ? (window.pageXOffset || document.documentElement.scrollLeft)
+                : scrollContainer.scrollLeft;
             let cursorPosition = null;
             let inputValue = null;
             
@@ -1792,12 +1935,23 @@
             // Use requestAnimationFrame for better timing
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
+                    const restoreScrollPosition = () => {
+                        if (useWindowScroll) {
+                            window.scrollTo({
+                                left: scrollLeft,
+                                top: scrollTop,
+                                behavior: 'auto'
+                            });
+                        } else if (scrollContainer && typeof scrollContainer.scrollTo === 'function') {
+                            scrollContainer.scrollTo({
+                                left: scrollLeft,
+                                top: scrollTop,
+                                behavior: 'auto'
+                            });
+                        }
+                    };
                     // Restore scroll position first
-                    window.scrollTo({
-                        left: scrollLeft,
-                        top: scrollTop,
-                        behavior: 'auto'
-                    });
+                    restoreScrollPosition();
                     
                     if (isTextInput && activeElement && document.body.contains(activeElement)) {
                         // Restore focus if the input still exists, but prevent scroll
@@ -1815,28 +1969,16 @@
                             
                             // Ensure scroll position is still correct after focus
                             requestAnimationFrame(function() {
-                                window.scrollTo({
-                                    left: scrollLeft,
-                                    top: scrollTop,
-                                    behavior: 'auto'
-                                });
+                                restoreScrollPosition();
                             });
                         } catch (e) {
                             // Ignore focus errors (element might have been removed)
                             // Still restore scroll position
-                            window.scrollTo({
-                                left: scrollLeft,
-                                top: scrollTop,
-                                behavior: 'auto'
-                            });
+                            restoreScrollPosition();
                         }
                     } else {
                         // If no active element or it's not a text input, just restore scroll position
-                        window.scrollTo({
-                            left: scrollLeft,
-                            top: scrollTop,
-                            behavior: 'auto'
-                        });
+                        restoreScrollPosition();
                     }
                 });
             });
@@ -1899,6 +2041,189 @@
             if (modal) {
                 modal.style.display = 'none';
             }
+        }
+
+        function showInstructionsModal() {
+            const modal = document.getElementById('instructionsModal');
+            const contentDiv = document.getElementById('instructionsContent');
+            if (modal && contentDiv) {
+                // Try to load from markdown file first
+                loadInstructionsFromFile();
+                modal.style.display = 'block';
+            }
+        }
+
+        function closeInstructionsModal() {
+            const modal = document.getElementById('instructionsModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function loadInstructionsFromFile() {
+            const contentDiv = document.getElementById('instructionsContent');
+            if (!contentDiv) return;
+
+            // Try to fetch the markdown file
+            fetch('WORK_INSTRUCTIONS.md')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('File not found');
+                    }
+                    return response.text();
+                })
+                .then(markdown => {
+                    const html = convertMarkdownToHtml(markdown);
+                    contentDiv.innerHTML = html;
+                })
+                .catch(error => {
+                    // If file can't be loaded, use embedded instructions
+                    console.warn('Could not load WORK_INSTRUCTIONS.md, using embedded version:', error);
+                    contentDiv.innerHTML = getEmbeddedInstructions();
+                });
+        }
+
+        function convertMarkdownToHtml(markdown) {
+            let html = markdown;
+            const lines = html.split('\n');
+            const result = [];
+            let inList = false;
+            let listType = null; // 'ul' or 'ol'
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                const trimmed = line.trim();
+                
+                // Skip empty lines (we'll handle spacing later)
+                if (!trimmed) {
+                    if (inList) {
+                        result.push('</' + listType + '>');
+                        inList = false;
+                        listType = null;
+                    }
+                    result.push('');
+                    continue;
+                }
+                
+                // Headers
+                if (trimmed.startsWith('### ')) {
+                    if (inList) {
+                        result.push('</' + listType + '>');
+                        inList = false;
+                        listType = null;
+                    }
+                    const text = trimmed.substring(4);
+                    result.push('<h3 style="color: #0c2a4a; margin-top: 24px; margin-bottom: 12px; font-size: 18px; font-weight: 700;">' + processInlineFormatting(text) + '</h3>');
+                    continue;
+                }
+                if (trimmed.startsWith('## ')) {
+                    if (inList) {
+                        result.push('</' + listType + '>');
+                        inList = false;
+                        listType = null;
+                    }
+                    const text = trimmed.substring(3);
+                    result.push('<h2 style="color: #0c2a4a; margin-top: 32px; margin-bottom: 16px; font-size: 22px; font-weight: 700; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px;">' + processInlineFormatting(text) + '</h2>');
+                    continue;
+                }
+                if (trimmed.startsWith('# ')) {
+                    if (inList) {
+                        result.push('</' + listType + '>');
+                        inList = false;
+                        listType = null;
+                    }
+                    const text = trimmed.substring(2);
+                    result.push('<h1 style="color: #0c2a4a; margin-top: 32px; margin-bottom: 16px; font-size: 26px; font-weight: 700;">' + processInlineFormatting(text) + '</h1>');
+                    continue;
+                }
+                
+                // Horizontal rules
+                if (trimmed === '---') {
+                    if (inList) {
+                        result.push('</' + listType + '>');
+                        inList = false;
+                        listType = null;
+                    }
+                    result.push('<hr style="margin: 24px 0; border: none; border-top: 1px solid #e0e0e0;">');
+                    continue;
+                }
+                
+                // Checkboxes
+                const checkboxMatch = trimmed.match(/^- \[([ x])\] (.*)$/);
+                if (checkboxMatch) {
+                    if (!inList || listType !== 'ul') {
+                        if (inList) result.push('</' + listType + '>');
+                        result.push('<ul style="margin: 16px 0; padding-left: 24px;">');
+                        inList = true;
+                        listType = 'ul';
+                    }
+                    const checked = checkboxMatch[1] === 'x';
+                    const text = checkboxMatch[2];
+                    result.push('<li style="margin-bottom: 8px; list-style: none;"><input type="checkbox" ' + (checked ? 'checked ' : '') + 'disabled style="margin-right: 8px;">' + processInlineFormatting(text) + '</li>');
+                    continue;
+                }
+                
+                // Unordered lists
+                if (trimmed.match(/^- /)) {
+                    if (!inList || listType !== 'ul') {
+                        if (inList) result.push('</' + listType + '>');
+                        result.push('<ul style="margin: 16px 0; padding-left: 24px;">');
+                        inList = true;
+                        listType = 'ul';
+                    }
+                    const text = trimmed.substring(2);
+                    result.push('<li style="margin-bottom: 8px;">' + processInlineFormatting(text) + '</li>');
+                    continue;
+                }
+                
+                // Numbered lists
+                const numberedMatch = trimmed.match(/^(\d+)\. (.*)$/);
+                if (numberedMatch) {
+                    if (!inList || listType !== 'ol') {
+                        if (inList) result.push('</' + listType + '>');
+                        result.push('<ol style="margin: 16px 0; padding-left: 24px;">');
+                        inList = true;
+                        listType = 'ol';
+                    }
+                    const text = numberedMatch[2];
+                    result.push('<li style="margin-bottom: 8px;">' + processInlineFormatting(text) + '</li>');
+                    continue;
+                }
+                
+                // Regular paragraph
+                if (inList) {
+                    result.push('</' + listType + '>');
+                    inList = false;
+                    listType = null;
+                }
+                result.push('<p style="margin-bottom: 12px; line-height: 1.6;">' + processInlineFormatting(trimmed) + '</p>');
+            }
+            
+            // Close any open list
+            if (inList) {
+                result.push('</' + listType + '>');
+            }
+            
+            // Join and clean up
+            html = result.join('\n');
+            html = html.replace(/\n\n+/g, '\n'); // Remove multiple empty lines
+            html = html.replace(/<p><\/p>/g, ''); // Remove empty paragraphs
+            
+            return html;
+        }
+        
+        function processInlineFormatting(text) {
+            // Convert bold
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Convert inline code
+            text = text.replace(/`([^`]+)`/g, '<code style="background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 0.9em;">$1</code>');
+            return text;
+        }
+
+        function getEmbeddedInstructions() {
+            // Fallback embedded instructions HTML (converted from markdown)
+            // This will be used if the markdown file can't be loaded
+            return '<div style="line-height: 1.6; color: #333;"><p style="font-size: 16px; margin-bottom: 20px;">The Feel Good News (FGN) Template Builder is a web-based tool that helps you create formatted HTML content for weekly "Feel Good News" articles. The tool generates a complete HTML template with articles, employee spotlights, and optional "Thank the Donor" sections that can be directly pasted into your content management system.</p><h2 style="color: #0c2a4a; margin-top: 32px; margin-bottom: 16px; font-size: 22px; font-weight: 700; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px;">Important Prerequisites</h2><h3 style="color: #0c2a4a; margin-top: 24px; margin-bottom: 12px; font-size: 18px; font-weight: 700;">⚠️ CRITICAL: Publication Date Must Be Set First</h3><p style="margin-bottom: 12px; line-height: 1.6;"><strong>You MUST set the publication date before adding any articles or filling out any content.</strong> The tool will prevent you from adding articles until a date is selected. This date is used to:</p><ul style="margin: 16px 0; padding-left: 24px;"><li style="margin-bottom: 8px;">Generate the correct image file paths</li><li style="margin-bottom: 8px;">Set schema.org metadata for SEO</li><li style="margin-bottom: 8px;">Organize files in the correct date-based folder structure</li></ul><p style="margin-bottom: 12px; line-height: 1.6; color: #e5253a; font-weight: 600;">Note: The full instructions are available in WORK_INSTRUCTIONS.md. If you see this message, the file could not be loaded automatically.</p></div>';
         }
 
         function importHtml() {
