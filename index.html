@@ -167,51 +167,10 @@
                     <!-- Articles will be dynamically added here -->
                 </div>
 
-                <div class="form-actions">
-                    <button type="button" class="add-article-btn" onclick="addArticle()">
-                        + Add Article
-                    </button>
-                    <button type="button" class="add-article-btn" onclick="addThankDonor()" id="addThankDonorBtn">
-                        + Add Thank the Donor
-                    </button>
-                    <button type="button" class="copy-btn" onclick="copyToClipboard()">
-                        Copy Code
-                    </button>
-                    <button type="button" class="copy-btn" onclick="showImportModal()" style="background: #0c2a4a;">
-                        Import HTML
-                    </button>
-                </div>
-
-                <!-- Import Modal -->
-                <div id="importModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; overflow-y: auto;" onclick="if(event.target.id === 'importModal') closeImportModal();">
-                    <div style="max-width: 800px; margin: 50px auto; background: white; padding: 24px; border-radius: 8px; position: relative;" onclick="event.stopPropagation();">
-                        <h2 style="margin-top: 0;">Import HTML</h2>
-                        <p style="color: #666; margin-bottom: 16px;">Paste the HTML output from this system to import existing content:</p>
-                        <textarea id="importHtmlTextarea" style="width: 100%; height: 300px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 12px;" placeholder="Paste HTML here..."></textarea>
-                        <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
-                            <button type="button" class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
-                            <button type="button" class="btn btn-primary" onclick="importHtml()" style="background: #0c2a4a; color: white;">Import</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Instructions Modal -->
-                <div id="instructionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; overflow-y: auto;" onclick="if(event.target.id === 'instructionsModal') closeInstructionsModal();">
-                    <div style="max-width: 900px; margin: 20px auto; background: white; padding: 32px; border-radius: 8px; position: relative; max-height: calc(100vh - 40px);" onclick="event.stopPropagation();">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 2px solid #e0e0e0; padding-bottom: 16px;">
-                            <h1 style="margin: 0; color: #0c2a4a; font-size: 28px;">Feel Good News Template Builder - Work Instructions</h1>
-                            <button type="button" onclick="closeInstructionsModal()" style="background: none; border: none; font-size: 24px; color: #666; cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 32px;">&times;</button>
-                        </div>
-                        <div id="instructionsContent" style="overflow-y: auto; max-height: calc(100vh - 180px); padding-right: 8px;">
-                            <!-- Instructions content will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="employee-spotlight-section article-group" id="employeeSpotlightGroup">
+                <div class="employee-spotlight-section article-group collapsed" id="employeeSpotlightGroup">
                     <div class="article-header" onclick="toggleEmployeeSpotlight()">
                         <div class="article-header-left">
-                            <span class="article-toggle">▼</span>
+                            <span class="article-toggle">►</span>
                             <span class="article-number">Employee Spotlight</span>
                         </div>
                         <div class="article-actions" onclick="event.stopPropagation()">
@@ -241,6 +200,66 @@
                 </div>
                     </div>
                 </div>
+
+                <div class="form-actions">
+                    <button type="button" class="add-article-btn" onclick="addArticle()">
+                        + Add Article
+                    </button>
+                    <button type="button" class="add-article-btn" onclick="addThankDonor()" id="addThankDonorBtn">
+                        + Add Thank the Donor
+                    </button>
+                    <button type="button" class="copy-btn" onclick="copyToClipboard()">
+                        Copy Code
+                    </button>
+                    <button type="button" class="copy-btn" onclick="showImportModal()" style="background: #0c2a4a;">
+                        Import HTML
+                    </button>
+                    <!-- Shareable Content Studio - Commented out
+                    <button type="button" class="copy-btn" onclick="showShareableStudio()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        🎨 Shareable Content Studio
+                    </button>
+                    -->
+                </div>
+
+                <!-- Import Modal -->
+                <div id="importModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; overflow-y: auto;" onclick="if(event.target.id === 'importModal') closeImportModal();">
+                    <div style="max-width: 800px; margin: 50px auto; background: white; padding: 24px; border-radius: 8px; position: relative;" onclick="event.stopPropagation();">
+                        <h2 style="margin-top: 0;">Import HTML</h2>
+                        <p style="color: #666; margin-bottom: 16px;">Paste the HTML output from this system to import existing content:</p>
+                        <textarea id="importHtmlTextarea" style="width: 100%; height: 300px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 12px;" placeholder="Paste HTML here..."></textarea>
+                        <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="importHtml()" style="background: #0c2a4a; color: white;">Import</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions Modal -->
+                <div id="instructionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; overflow-y: auto;" onclick="if(event.target.id === 'instructionsModal') closeInstructionsModal();">
+                    <div style="max-width: 900px; margin: 20px auto; background: white; padding: 32px; border-radius: 8px; position: relative; max-height: calc(100vh - 40px);" onclick="event.stopPropagation();">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #e0e0e0; padding-bottom: 16px;">
+                            <h1 style="margin: 0; color: #0c2a4a; font-size: 28px;">Feel Good News Template Builder - Work Instructions</h1>
+                            <button type="button" onclick="closeInstructionsModal()" style="background: none; border: none; font-size: 24px; color: #666; cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 32px;">&times;</button>
+                        </div>
+                        <!-- Navigation Bar -->
+                        <div id="instructionsNav" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; padding: 12px; background: #f6f7f9; border-radius: 6px; border: 1px solid #e0e0e0;">
+                            <button onclick="scrollToSection('overview')" class="nav-btn" style="padding: 8px 12px; background: #0c2a4a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='#e5253a'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#0c2a4a'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Overview</button>
+                            <button onclick="scrollToSection('order-of-operations')" class="nav-btn" style="padding: 8px 12px; background: #0c2a4a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='#e5253a'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#0c2a4a'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Order of Operations</button>
+                            <button onclick="scrollToSection('image-handling')" class="nav-btn" style="padding: 8px 12px; background: #0c2a4a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='#e5253a'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#0c2a4a'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Images & Captions</button>
+                            <!-- Shareable Studio button - Commented out
+                            <button onclick="scrollToSection('shareable-studio')" class="nav-btn" style="padding: 8px 12px; background: #0c2a4a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='#e5253a'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#0c2a4a'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Shareable Studio</button>
+                            -->
+                            <button onclick="scrollToSection('tips')" class="nav-btn" style="padding: 8px 12px; background: #0c2a4a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='#e5253a'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#0c2a4a'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Tips & Best Practices</button>
+                            <button onclick="scrollToSection('troubleshooting')" class="nav-btn" style="padding: 8px 12px; background: #0c2a4a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='#e5253a'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#0c2a4a'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Troubleshooting</button>
+                            <button onclick="scrollToSection('checklist')" class="nav-btn" style="padding: 8px 12px; background: #0c2a4a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='#e5253a'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='#0c2a4a'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Quick Checklist</button>
+                        </div>
+                        <div id="instructionsContent" style="overflow-y: auto; max-height: calc(100vh - 280px); padding-right: 8px;">
+                            <!-- Instructions content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shareable Content Studio Modal - Completely removed -->
             </div>
 
             <div class="preview-section">
@@ -252,6 +271,9 @@
     </div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- html2canvas script - Commented out (only used by Shareable Content Studio)
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    -->
     <script>
         let articles = [];
         let articleCounter = 0;
@@ -277,7 +299,7 @@
             imageAlt: ''
         };
         let thankDonorQuill = null; // Store Quill editor for thank the donor content
-        let employeeSpotlightCollapsed = false; // Track Employee Spotlight collapsed state
+        let employeeSpotlightCollapsed = true; // Track Employee Spotlight collapsed state (starts collapsed)
 
                                                                                                                                 // Initialize template content (embedded to avoid CORS issues with file://)
         function initializeTemplate() {
@@ -322,6 +344,38 @@
             } catch (error) {
                 console.error('Initialization error:', error);
                 alert('Error initializing form. Please check the console for details.');
+            }
+        });
+
+        // Remove any Shareable Content Studio elements (commented out feature)
+        document.addEventListener('DOMContentLoaded', function() {
+            const studioModal = document.getElementById('shareableStudioModal');
+            if (studioModal) {
+                studioModal.remove();
+            }
+            const studioQuotes = document.getElementById('studio-quotes');
+            if (studioQuotes) {
+                studioQuotes.remove();
+            }
+            const studioImpact = document.getElementById('studio-impact');
+            if (studioImpact) {
+                studioImpact.remove();
+            }
+            const quotesContainer = document.getElementById('quotesContainer');
+            if (quotesContainer) {
+                quotesContainer.remove();
+            }
+            const impactContainer = document.getElementById('impactContainer');
+            if (impactContainer) {
+                impactContainer.remove();
+            }
+            const tabQuotes = document.getElementById('tab-quotes');
+            if (tabQuotes) {
+                tabQuotes.remove();
+            }
+            const tabImpact = document.getElementById('tab-impact');
+            if (tabImpact) {
+                tabImpact.remove();
             }
         });
 
@@ -869,7 +923,9 @@
                     imageAlt: '',
                     videoUrl: '',
                     galleryUrls: [],
-                    collapsed: false // Track accordion state
+                    galleryCaptions: [],
+                    collapsed: false, // Track accordion state
+                    galleryCollapsed: false // Track gallery section collapsed state
                 };
                 articles.push(article);
                 console.log('Article added, total articles:', articles.length);
@@ -903,6 +959,12 @@
 
         function addGalleryImage(articleIndex) {
             articles[articleIndex].galleryUrls.push('');
+            // Initialize galleryCaptions if it doesn't exist
+            if (!articles[articleIndex].galleryCaptions) {
+                articles[articleIndex].galleryCaptions = [];
+            }
+            // Add empty caption for new image
+            articles[articleIndex].galleryCaptions.push({ enabled: false, text: '' });
             renderArticles();
             // Validate image alt after rendering
             setTimeout(function() {
@@ -913,12 +975,68 @@
 
         function removeGalleryImage(articleIndex, imageIndex) {
             articles[articleIndex].galleryUrls.splice(imageIndex, 1);
+            // Also remove corresponding caption
+            if (articles[articleIndex].galleryCaptions && articles[articleIndex].galleryCaptions[imageIndex]) {
+                articles[articleIndex].galleryCaptions.splice(imageIndex, 1);
+            }
             renderArticles();
             // Validate image alt after rendering
             setTimeout(function() {
                 validateImageAlt(articleIndex);
             }, 100);
             updateOutputRealTime(); // Real-time update
+        }
+
+        function toggleGalleryCaption(articleIndex, imageIndex) {
+            const article = articles[articleIndex];
+            // Initialize galleryCaptions if it doesn't exist
+            if (!article.galleryCaptions) {
+                article.galleryCaptions = [];
+            }
+            // Ensure array is long enough
+            while (article.galleryCaptions.length <= imageIndex) {
+                article.galleryCaptions.push({ enabled: false, text: '' });
+            }
+            // Toggle the enabled state
+            article.galleryCaptions[imageIndex] = article.galleryCaptions[imageIndex] || { enabled: false, text: '' };
+            article.galleryCaptions[imageIndex].enabled = !article.galleryCaptions[imageIndex].enabled;
+            // If disabling, clear the text
+            if (!article.galleryCaptions[imageIndex].enabled) {
+                article.galleryCaptions[imageIndex].text = '';
+            }
+            renderArticles();
+            // Focus on caption field if enabled
+            if (article.galleryCaptions[imageIndex].enabled) {
+                setTimeout(function() {
+                    const captionInput = document.getElementById('gallery-caption-' + article.id + '-' + imageIndex);
+                    if (captionInput) {
+                        captionInput.focus();
+                    }
+                }, 50);
+            }
+            // Validate alt text (since captions can function as alt text)
+            setTimeout(function() {
+                validateImageAlt(articleIndex);
+            }, 100);
+            updateOutputRealTime();
+        }
+
+        function updateGalleryCaption(articleIndex, imageIndex, value) {
+            const article = articles[articleIndex];
+            // Initialize galleryCaptions if it doesn't exist
+            if (!article.galleryCaptions) {
+                article.galleryCaptions = [];
+            }
+            // Ensure array is long enough
+            while (article.galleryCaptions.length <= imageIndex) {
+                article.galleryCaptions.push({ enabled: false, text: '' });
+            }
+            // Update the caption text
+            article.galleryCaptions[imageIndex] = article.galleryCaptions[imageIndex] || { enabled: true, text: '' };
+            article.galleryCaptions[imageIndex].text = value || '';
+            // Validate alt text (since captions can function as alt text)
+            validateImageAlt(articleIndex);
+            updateOutputRealTime();
         }
 
         function handleGalleryUpload(articleIndex, files) {
@@ -957,6 +1075,15 @@
                 articles[articleIndex].galleryUrls = [];
             }
             articles[articleIndex].galleryUrls = articles[articleIndex].galleryUrls.concat(newUrls);
+            
+            // Initialize galleryCaptions if it doesn't exist
+            if (!articles[articleIndex].galleryCaptions) {
+                articles[articleIndex].galleryCaptions = [];
+            }
+            // Add empty captions for new images
+            for (let i = 0; i < newUrls.length; i++) {
+                articles[articleIndex].galleryCaptions.push({ enabled: false, text: '' });
+            }
             
             // Clear the file input
             const fileInput = document.getElementById('gallery-upload-' + articles[articleIndex].id);
@@ -1008,10 +1135,29 @@
 
                 // Build gallery HTML separately
                 var galleryHtml = '';
+                // Initialize galleryCaptions array if it doesn't exist
+                if (!article.galleryCaptions) {
+                    article.galleryCaptions = [];
+                }
+                // Ensure galleryCaptions array is the same length as galleryUrls
+                while (article.galleryCaptions.length < article.galleryUrls.length) {
+                    article.galleryCaptions.push({ enabled: false, text: '' });
+                }
+                
                 article.galleryUrls.forEach(function(url, imgIndex) {
-                    galleryHtml += '<div class="gallery-item">';
-                    galleryHtml += '<input type="text" value="' + escapeHtml(url) + '" oninput="updateGalleryImage(' + index + ', ' + imgIndex + ', this.value)" placeholder="Enter filename only (e.g., image.jpg)">';
+                    const caption = article.galleryCaptions[imgIndex] || { enabled: false, text: '' };
+                    galleryHtml += '<div class="gallery-item" style="margin-bottom: 16px; padding: 12px; background: #f6f7f9; border-radius: 8px; border: 1px solid #e0e0e0;">';
+                    galleryHtml += '<div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">';
+                    galleryHtml += '<input type="text" value="' + escapeHtml(url) + '" oninput="updateGalleryImage(' + index + ', ' + imgIndex + ', this.value)" placeholder="Enter filename only (e.g., image.jpg)" style="flex: 1;">';
+                    galleryHtml += '<button type="button" class="btn btn-secondary btn-small" onclick="toggleGalleryCaption(' + index + ', ' + imgIndex + ')" style="padding: 6px 12px; min-width: 36px;" title="Add caption">' + (caption.enabled ? '−' : '+') + '</button>';
                     galleryHtml += '<button type="button" class="btn btn-danger btn-small" onclick="removeGalleryImage(' + index + ', ' + imgIndex + ')">Remove</button>';
+                    galleryHtml += '</div>';
+                    // Caption field (shown if enabled)
+                    if (caption.enabled) {
+                        galleryHtml += '<div class="gallery-caption-field" style="margin-top: 8px;">';
+                        galleryHtml += '<input type="text" id="gallery-caption-' + article.id + '-' + imgIndex + '" value="' + escapeHtml(caption.text || '') + '" oninput="updateGalleryCaption(' + index + ', ' + imgIndex + ', this.value)" placeholder="Enter image caption/description (optional)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">';
+                        galleryHtml += '</div>';
+                    }
                     galleryHtml += '</div>';
                 });
 
@@ -1041,17 +1187,22 @@
                 html += '</div>';
                 html += '<div class="gallery-section">';
                 html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">';
-                html += '<label style="margin: 0;">Images<span class="tooltip-wrapper"><span class="tooltip-icon">?</span><span class="tooltip-text">Add one image for a single photo, or multiple images for a slideshow gallery.</span></span></label>';
-                html += '<div style="display: flex; gap: 8px;">';
-                html += '<button type="button" class="btn btn-secondary btn-small" onclick="addGalleryImage(' + index + ')">+ Add Image</button>';
-                html += '<label for="gallery-upload-' + article.id + '" class="btn btn-secondary btn-small" style="margin: 0; cursor: pointer;">📁 Upload Files</label>';
+                html += '<div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleGallerySection(' + index + ')">';
+                html += '<span class="gallery-toggle-icon" id="gallery-toggle-' + article.id + '" style="font-size: 14px; color: #0c2a4a; font-weight: bold; transition: transform 0.2s ease; display: inline-block;">' + (article.galleryCollapsed ? '►' : '▼') + '</span>';
+                html += '<label style="margin: 0; cursor: pointer;">Images<span class="tooltip-wrapper"><span class="tooltip-icon">?</span><span class="tooltip-text">Add one image for a single photo, or multiple images for a slideshow gallery.</span></span></label>';
+                html += '</div>';
+                html += '<div style="display: flex; gap: 8px;" onclick="event.stopPropagation();">';
+                html += '<button type="button" class="btn btn-secondary btn-small" onclick="event.stopPropagation(); addGalleryImage(' + index + ');">+ Add Image</button>';
+                html += '<label for="gallery-upload-' + article.id + '" class="btn btn-secondary btn-small" style="margin: 0; cursor: pointer;" onclick="event.stopPropagation();">📁 Upload Files</label>';
                 html += '<input type="file" id="gallery-upload-' + article.id + '" multiple accept="image/*" style="display: none;" onchange="handleGalleryUpload(' + index + ', this.files)">';
                 html += '</div>';
                 html += '</div>';
+                html += '<div class="gallery-content" id="gallery-content-' + article.id + '" style="' + (article.galleryCollapsed ? 'display: none;' : '') + '">';
                 html += '<div id="gallery-' + article.id + '">' + galleryHtml + '</div>';
-                html += '<div class="form-group" style="margin-top: 12px;"><label id="imageAltLabel-' + article.id + '">Image Alt Text<span class="tooltip-wrapper"><span class="tooltip-icon">?</span><span class="tooltip-text">Describe the image with your eyes closed to help out friends with visual impairments.</span></span></label>';
+                html += '<div class="form-group" style="margin-top: 12px;"><label id="imageAltLabel-' + article.id + '">Image Alt Text<span class="tooltip-wrapper"><span class="tooltip-icon">?</span><span class="tooltip-text">Describe the image with your eyes closed to help out friends with visual impairments. Note: If you add captions to your images (using the + button), those will automatically be used as alt text.</span></span></label>';
                 html += '<input type="text" id="imageAlt-' + article.id + '" value="' + escapeHtml(article.imageAlt || '') + '" oninput="updateArticle(' + index + ', &quot;imageAlt&quot;, this.value)" placeholder="Enter image alt text">';
                 html += '<div class="error">Image Alt Text is required when images are provided</div></div>';
+                html += '</div>'; // Close gallery-content
                 html += '</div>';
                 html += '</div>'; // Close article-content
                 
@@ -1099,6 +1250,28 @@
                 } else {
                     articleDiv.classList.remove('collapsed');
                 }
+            }
+        }
+
+        function toggleGallerySection(index) {
+            const article = articles[index];
+            if (!article) return;
+            
+            article.galleryCollapsed = !article.galleryCollapsed;
+            
+            const galleryContent = document.getElementById('gallery-content-' + article.id);
+            const toggleIcon = document.getElementById('gallery-toggle-' + article.id);
+            
+            if (galleryContent) {
+                if (article.galleryCollapsed) {
+                    galleryContent.style.display = 'none';
+                } else {
+                    galleryContent.style.display = 'block';
+                }
+            }
+            
+            if (toggleIcon) {
+                toggleIcon.textContent = article.galleryCollapsed ? '►' : '▼';
             }
         }
 
@@ -1157,12 +1330,23 @@
             // Check if gallery images exist
             const hasGalleryImages = article.galleryUrls && article.galleryUrls.length > 0 && article.galleryUrls.some(url => url && url.trim());
             
-            // Require Image Alt if gallery images exist
+            // Check if any captions exist (captions can function as alt text)
+            const hasCaptions = article.galleryCaptions && article.galleryCaptions.some(caption => caption && caption.enabled && caption.text && caption.text.trim());
+            
+            // Require Image Alt if gallery images exist AND no captions are provided
+            // (Captions can function as alt text, so if captions exist, alt text field is optional)
             if (hasGalleryImages) {
-                imageAltLabel.classList.add('required');
-                if (!imageAltInput.value.trim()) {
-                    formGroup.classList.add('has-error');
+                if (!hasCaptions) {
+                    // No captions, so alt text field is required
+                    imageAltLabel.classList.add('required');
+                    if (!imageAltInput.value.trim()) {
+                        formGroup.classList.add('has-error');
+                    } else {
+                        formGroup.classList.remove('has-error');
+                    }
                 } else {
+                    // Captions exist, so alt text field is optional (used as fallback)
+                    imageAltLabel.classList.remove('required');
                     formGroup.classList.remove('has-error');
                 }
             } else {
@@ -1610,6 +1794,30 @@
                                 return '"' + escapeHtml(url) + '"';
                             }).join(',\n      ');
                             
+                            // Build captions array and alt texts array matching the order of galleryUrls
+                            const galleryCaptionsArray = [];
+                            const galleryAltTextsArray = [];
+                            const fallbackAlt = article.imageAlt || article.title || 'Image';
+                            articleGalleryUrls.forEach(function(url) {
+                                // Find the index of this URL in the original article.galleryUrls array
+                                const originalIndex = article.galleryUrls.findIndex(function(u) {
+                                    return normalizeImageUrl(u && u.trim() ? u.trim() : '') === url;
+                                });
+                                // Build caption
+                                if (originalIndex >= 0 && article.galleryCaptions && article.galleryCaptions[originalIndex] && article.galleryCaptions[originalIndex].enabled && article.galleryCaptions[originalIndex].text && article.galleryCaptions[originalIndex].text.trim()) {
+                                    const captionText = article.galleryCaptions[originalIndex].text.trim();
+                                    galleryCaptionsArray.push('"' + escapeHtml(captionText) + '"');
+                                    // Use caption as alt text
+                                    galleryAltTextsArray.push('"' + escapeHtml(captionText) + '"');
+                                } else {
+                                    galleryCaptionsArray.push('""');
+                                    // Use fallback alt text
+                                    galleryAltTextsArray.push('"' + escapeHtml(fallbackAlt) + '"');
+                                }
+                            });
+                            const galleryCaptionsString = galleryCaptionsArray.join(',\n      ');
+                            const galleryAltTextsString = galleryAltTextsArray.join(',\n      ');
+                            
                             // Ensure we have URLs to work with
                             if (galleryUrlsString && galleryUrlsString.trim().length > 0) {
                                 const scriptParts = [
@@ -1618,23 +1826,153 @@
                                     '    const formImages_' + jsSafeId + ' = [',
                                     '      ' + galleryUrlsString,
                                     '    ];',
+                                    '    const formCaptions_' + jsSafeId + ' = [',
+                                    '      ' + galleryCaptionsString,
+                                    '    ];',
+                                    '    const formAltTexts_' + jsSafeId + ' = [',
+                                    '      ' + galleryAltTextsString,
+                                    '    ];',
                                     '    let formIndex_' + jsSafeId + ' = 0;',
+                                    '    let autoPlayInterval_' + jsSafeId + ' = null;',
+                                    '    ',
+                                    '    function updateCaption_' + jsSafeId + '() {',
+                                    '      const captionEl = document.getElementById("gallery-caption-' + articleImageId + '");',
+                                    '      const formImg = document.getElementById("' + articleImageId + '");',
+                                    '      ',
+                                    '      // Update caption display',
+                                    '      if (captionEl && formCaptions_' + jsSafeId + '[formIndex_' + jsSafeId + '] && formCaptions_' + jsSafeId + '[formIndex_' + jsSafeId + '].trim()) {',
+                                    '        captionEl.textContent = formCaptions_' + jsSafeId + '[formIndex_' + jsSafeId + '];',
+                                    '        captionEl.style.display = "block";',
+                                    '      } else if (captionEl) {',
+                                    '        captionEl.textContent = "";',
+                                    '        captionEl.style.display = "none";',
+                                    '      }',
+                                    '      ',
+                                    '      // Update alt text (use caption as alt text)',
+                                    '      if (formImg && formAltTexts_' + jsSafeId + '[formIndex_' + jsSafeId + ']) {',
+                                    '        formImg.alt = formAltTexts_' + jsSafeId + '[formIndex_' + jsSafeId + '];',
+                                    '      }',
+                                    '    }',
+                                    '    ',
+                                    '    function changeImage_' + jsSafeId + '(direction) {',
+                                    '      const formImg = document.getElementById("' + articleImageId + '");',
+                                    '      if (!formImg || formImages_' + jsSafeId + '.length === 0) return;',
+                                    '      ',
+                                    '      // Calculate new index',
+                                    '      if (direction === "next") {',
+                                    '        formIndex_' + jsSafeId + ' = (formIndex_' + jsSafeId + ' + 1) % formImages_' + jsSafeId + '.length;',
+                                    '      } else if (direction === "prev") {',
+                                    '        formIndex_' + jsSafeId + ' = (formIndex_' + jsSafeId + ' - 1 + formImages_' + jsSafeId + '.length) % formImages_' + jsSafeId + '.length;',
+                                    '      }',
+                                    '      ',
+                                    '      // Fade out, change image, fade in',
+                                    '      formImg.style.opacity = 0;',
+                                    '      formImg.style.transition = "opacity 0.5s ease";',
+                                    '      setTimeout(function() {',
+                                    '        formImg.src = formImages_' + jsSafeId + '[formIndex_' + jsSafeId + '];',
+                                    '        formImg.style.opacity = 1;',
+                                    '        // Update caption and alt text',
+                                    '        updateCaption_' + jsSafeId + '();',
+                                    '      }, 500);',
+                                    '    }',
+                                    '    ',
+                                    '    function startAutoPlay_' + jsSafeId + '() {',
+                                    '      // Clear existing interval',
+                                    '      if (autoPlayInterval_' + jsSafeId + ') {',
+                                    '        clearInterval(autoPlayInterval_' + jsSafeId + ');',
+                                    '      }',
+                                    '      // Start auto-play (5 second intervals)',
+                                    '      autoPlayInterval_' + jsSafeId + ' = setInterval(function() {',
+                                    '        changeImage_' + jsSafeId + '("next");',
+                                    '      }, 5000);',
+                                    '    }',
+                                    '    ',
+                                    '    function pauseAutoPlay_' + jsSafeId + '() {',
+                                    '      // Clear the interval to pause auto-play',
+                                    '      if (autoPlayInterval_' + jsSafeId + ') {',
+                                    '        clearInterval(autoPlayInterval_' + jsSafeId + ');',
+                                    '        autoPlayInterval_' + jsSafeId + ' = null;',
+                                    '      }',
+                                    '    }',
+                                    '    ',
+                                    '    function resumeAutoPlay_' + jsSafeId + '() {',
+                                    '      // Only resume if not already playing',
+                                    '      if (!autoPlayInterval_' + jsSafeId + ') {',
+                                    '        startAutoPlay_' + jsSafeId + '();',
+                                    '      }',
+                                    '    }',
                                     '    ',
                                     '    function initGallery_' + jsSafeId + '() {',
                                     '      const formImg = document.getElementById("' + articleImageId + '");',
+                                    '      const leftArrow = document.getElementById("gallery-arrow-left-' + articleImageId + '");',
+                                    '      const rightArrow = document.getElementById("gallery-arrow-right-' + articleImageId + '");',
+                                    '      const galleryContainer = document.getElementById("gallery-container-' + articleImageId + '");',
+                                    '      ',
                                     '      if (formImg && formImages_' + jsSafeId + '.length > 0) {',
+                                    '        // Set initial image',
                                     '        if (!formImg.src || formImg.src === "") {',
                                     '          formImg.src = formImages_' + jsSafeId + '[0];',
                                     '        }',
+                                    '        // Initialize caption',
+                                    '        updateCaption_' + jsSafeId + '();',
                                     '        ',
-                                    '        setInterval(function () {',
-                                    '          formImg.style.opacity = 0;',
-                                    '          setTimeout(function() {',
-                                    '            formIndex_' + jsSafeId + ' = (formIndex_' + jsSafeId + ' + 1) % formImages_' + jsSafeId + '.length;',
-                                    '            formImg.src = formImages_' + jsSafeId + '[formIndex_' + jsSafeId + '];',
-                                    '            formImg.style.opacity = 1;',
-                                    '          }, 1000);',
-                                    '        }, 5000);',
+                                    '        // Add click handlers for arrows',
+                                    '        if (leftArrow) {',
+                                    '          leftArrow.addEventListener("click", function(e) {',
+                                    '            e.stopPropagation();',
+                                    '            changeImage_' + jsSafeId + '("prev");',
+                                    '            // Restart auto-play after manual navigation',
+                                    '            startAutoPlay_' + jsSafeId + '();',
+                                    '          });',
+                                    '          // Hover effect',
+                                    '          leftArrow.addEventListener("mouseenter", function() {',
+                                    '            this.style.background = "rgba(12, 42, 74, 1)";',
+                                    '            this.style.transform = "translateY(-50%) scale(1.1)";',
+                                    '          });',
+                                    '          leftArrow.addEventListener("mouseleave", function() {',
+                                    '            this.style.background = "rgba(12, 42, 74, 0.8)";',
+                                    '            this.style.transform = "translateY(-50%) scale(1)";',
+                                    '          });',
+                                    '        }',
+                                    '        ',
+                                    '        if (rightArrow) {',
+                                    '          rightArrow.addEventListener("click", function(e) {',
+                                    '            e.stopPropagation();',
+                                    '            changeImage_' + jsSafeId + '("next");',
+                                    '            // Restart auto-play after manual navigation',
+                                    '            startAutoPlay_' + jsSafeId + '();',
+                                    '          });',
+                                    '          // Hover effect',
+                                    '          rightArrow.addEventListener("mouseenter", function() {',
+                                    '            this.style.background = "rgba(12, 42, 74, 1)";',
+                                    '            this.style.transform = "translateY(-50%) scale(1.1)";',
+                                    '          });',
+                                    '          rightArrow.addEventListener("mouseleave", function() {',
+                                    '            this.style.background = "rgba(12, 42, 74, 0.8)";',
+                                    '            this.style.transform = "translateY(-50%) scale(1)";',
+                                    '          });',
+                                    '        }',
+                                    '        ',
+                                    '        // Pause auto-play on hover and show arrows',
+                                    '        if (galleryContainer) {',
+                                    '          galleryContainer.addEventListener("mouseenter", function() {',
+                                    '            // Pause auto-play when hovering over the gallery',
+                                    '            pauseAutoPlay_' + jsSafeId + '();',
+                                    '            // Show arrows more prominently',
+                                    '            if (leftArrow) leftArrow.style.opacity = "1";',
+                                    '            if (rightArrow) rightArrow.style.opacity = "1";',
+                                    '          });',
+                                    '          galleryContainer.addEventListener("mouseleave", function() {',
+                                    '            // Resume auto-play when mouse leaves',
+                                    '            resumeAutoPlay_' + jsSafeId + '();',
+                                    '            // Make arrows less prominent',
+                                    '            if (leftArrow) leftArrow.style.opacity = "0.7";',
+                                    '            if (rightArrow) rightArrow.style.opacity = "0.7";',
+                                    '          });',
+                                    '        }',
+                                    '        ',
+                                    '        // Start auto-play',
+                                    '        startAutoPlay_' + jsSafeId + '();',
                                     '      } else if (formImages_' + jsSafeId + '.length > 0) {',
                                     '        setTimeout(initGallery_' + jsSafeId + ', 100);',
                                     '      }',
@@ -1711,16 +2049,38 @@
                     const firstGalleryImage = article.galleryUrls.find(url => url && url.trim());
                     if (firstGalleryImage) {
                         const imageSrc = normalizeImageUrl(firstGalleryImage.trim());
-                        let imageAlt = article.imageAlt || '';
-                        if (!imageAlt && article.title) {
-                            imageAlt = article.title;
+                        // Find the index of the first gallery image to get its caption
+                        const firstImageIndex = article.galleryUrls.findIndex(url => {
+                            const normalizedUrl = normalizeImageUrl(url && url.trim() ? url.trim() : '');
+                            return normalizedUrl === imageSrc;
+                        });
+                        // Use caption as alt text if available, otherwise fall back to article.imageAlt or title
+                        let imageAlt = '';
+                        if (firstImageIndex >= 0 && article.galleryCaptions && article.galleryCaptions[firstImageIndex] && article.galleryCaptions[firstImageIndex].enabled && article.galleryCaptions[firstImageIndex].text && article.galleryCaptions[firstImageIndex].text.trim()) {
+                            imageAlt = article.galleryCaptions[firstImageIndex].text.trim();
+                        } else {
+                            imageAlt = article.imageAlt || '';
+                            if (!imageAlt && article.title) {
+                                imageAlt = article.title;
+                            }
                         }
                         // Only add ID if there are 2+ images (for slideshow)
                         if (galleryImageCount > 1) {
-                            mediaContent += '<img class="masonry-image" alt="' + escapeHtml(imageAlt) + '" id="' + imageId + '" src="' + escapeHtml(imageSrc) + '" />';
+                            // Wrap gallery image in container with arrow controls
+                            mediaContent += '<div class="gallery-container" id="gallery-container-' + imageId + '" style="position: relative; display: inline-block; width: 100%;">';
+                            mediaContent += '<button class="gallery-arrow gallery-arrow-left" id="gallery-arrow-left-' + imageId + '" aria-label="Previous image" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(12, 42, 74, 0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; opacity: 0.7; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">‹</button>';
+                            mediaContent += '<img class="masonry-image" alt="' + escapeHtml(imageAlt) + '" id="' + imageId + '" src="' + escapeHtml(imageSrc) + '" style="width: 100%; display: block;" />';
+                            mediaContent += '<button class="gallery-arrow gallery-arrow-right" id="gallery-arrow-right-' + imageId + '" aria-label="Next image" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(12, 42, 74, 0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; opacity: 0.7; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">›</button>';
+                            mediaContent += '</div>';
+                            // Add caption element for gallery (will be updated by script)
+                            mediaContent += '<p class="image-caption" id="gallery-caption-' + imageId + '" style="margin-top: 12px; margin-bottom: 0; font-size: 14px; color: #666; font-style: italic; text-align: center; min-height: 20px; display: none;"></p>';
                         } else {
                             // Single image - no ID needed (no slideshow)
                             mediaContent += '<img class="masonry-image" alt="' + escapeHtml(imageAlt) + '" src="' + escapeHtml(imageSrc) + '" />';
+                            // Add caption if it exists for the first image
+                            if (firstImageIndex >= 0 && article.galleryCaptions && article.galleryCaptions[firstImageIndex] && article.galleryCaptions[firstImageIndex].enabled && article.galleryCaptions[firstImageIndex].text && article.galleryCaptions[firstImageIndex].text.trim()) {
+                                mediaContent += '<p class="image-caption" style="margin-top: 12px; margin-bottom: 0; font-size: 14px; color: #666; font-style: italic; text-align: center;">' + escapeHtml(article.galleryCaptions[firstImageIndex].text.trim()) + '</p>';
+                            }
                         }
                     }
                 }
@@ -2060,6 +2420,41 @@
             }
         }
 
+        function scrollToSection(sectionId) {
+            const contentDiv = document.getElementById('instructionsContent');
+            if (!contentDiv) return;
+            
+            // Function to attempt scrolling
+            const attemptScroll = (retries = 0) => {
+                // Find the element with the matching ID
+                const targetElement = contentDiv.querySelector('#' + sectionId);
+                if (targetElement) {
+                    // Calculate scroll position: element's position relative to container + current scroll
+                    const containerTop = contentDiv.getBoundingClientRect().top;
+                    const elementTop = targetElement.getBoundingClientRect().top;
+                    const currentScroll = contentDiv.scrollTop;
+                    const scrollToPosition = currentScroll + (elementTop - containerTop) - 10;
+                    
+                    // Scroll within the container with smooth behavior
+                    contentDiv.scrollTo({
+                        top: Math.max(0, scrollToPosition), // Ensure we don't scroll to negative position
+                        behavior: 'smooth'
+                    });
+                } else if (retries < 5) {
+                    // If element not found and we haven't retried too many times, try again
+                    setTimeout(() => attemptScroll(retries + 1), 200);
+                } else {
+                    console.log('Section not found after retries:', sectionId);
+                    // Debug: log available IDs
+                    const allIds = Array.from(contentDiv.querySelectorAll('[id]')).map(el => el.id);
+                    console.log('Available section IDs:', allIds);
+                }
+            };
+            
+            // Start attempting to scroll
+            attemptScroll();
+        }
+
         function loadInstructionsFromFile() {
             const contentDiv = document.getElementById('instructionsContent');
             if (!contentDiv) return;
@@ -2081,6 +2476,17 @@
                     console.warn('Could not load WORK_INSTRUCTIONS.md, using embedded version:', error);
                     contentDiv.innerHTML = getEmbeddedInstructions();
                 });
+        }
+
+        // Helper function to create ID from header text
+        function createHeaderId(text) {
+            // Remove HTML tags if any, then convert to lowercase, replace spaces with hyphens, remove special chars
+            const cleanText = text.replace(/<[^>]*>/g, '').toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+            return cleanText;
         }
 
         function convertMarkdownToHtml(markdown) {
@@ -2113,7 +2519,8 @@
                         listType = null;
                     }
                     const text = trimmed.substring(4);
-                    result.push('<h3 style="color: #0c2a4a; margin-top: 24px; margin-bottom: 12px; font-size: 18px; font-weight: 700;">' + processInlineFormatting(text) + '</h3>');
+                    const headerId = createHeaderId(text);
+                    result.push('<h3 id="' + headerId + '" style="color: #0c2a4a; margin-top: 24px; margin-bottom: 12px; font-size: 18px; font-weight: 700;">' + processInlineFormatting(text) + '</h3>');
                     continue;
                 }
                 if (trimmed.startsWith('## ')) {
@@ -2123,7 +2530,8 @@
                         listType = null;
                     }
                     const text = trimmed.substring(3);
-                    result.push('<h2 style="color: #0c2a4a; margin-top: 32px; margin-bottom: 16px; font-size: 22px; font-weight: 700; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px;">' + processInlineFormatting(text) + '</h2>');
+                    const headerId = createHeaderId(text);
+                    result.push('<h2 id="' + headerId + '" style="color: #0c2a4a; margin-top: 32px; margin-bottom: 16px; font-size: 22px; font-weight: 700; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px;">' + processInlineFormatting(text) + '</h2>');
                     continue;
                 }
                 if (trimmed.startsWith('# ')) {
@@ -2133,7 +2541,8 @@
                         listType = null;
                     }
                     const text = trimmed.substring(2);
-                    result.push('<h1 style="color: #0c2a4a; margin-top: 32px; margin-bottom: 16px; font-size: 26px; font-weight: 700;">' + processInlineFormatting(text) + '</h1>');
+                    const headerId = createHeaderId(text);
+                    result.push('<h1 id="' + headerId + '" style="color: #0c2a4a; margin-top: 32px; margin-bottom: 16px; font-size: 26px; font-weight: 700;">' + processInlineFormatting(text) + '</h1>');
                     continue;
                 }
                 
@@ -2225,6 +2634,318 @@
             // This will be used if the markdown file can't be loaded
             return '<div style="line-height: 1.6; color: #333;"><p style="font-size: 16px; margin-bottom: 20px;">The Feel Good News (FGN) Template Builder is a web-based tool that helps you create formatted HTML content for weekly "Feel Good News" articles. The tool generates a complete HTML template with articles, employee spotlights, and optional "Thank the Donor" sections that can be directly pasted into your content management system.</p><h2 style="color: #0c2a4a; margin-top: 32px; margin-bottom: 16px; font-size: 22px; font-weight: 700; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px;">Important Prerequisites</h2><h3 style="color: #0c2a4a; margin-top: 24px; margin-bottom: 12px; font-size: 18px; font-weight: 700;">⚠️ CRITICAL: Publication Date Must Be Set First</h3><p style="margin-bottom: 12px; line-height: 1.6;"><strong>You MUST set the publication date before adding any articles or filling out any content.</strong> The tool will prevent you from adding articles until a date is selected. This date is used to:</p><ul style="margin: 16px 0; padding-left: 24px;"><li style="margin-bottom: 8px;">Generate the correct image file paths</li><li style="margin-bottom: 8px;">Set schema.org metadata for SEO</li><li style="margin-bottom: 8px;">Organize files in the correct date-based folder structure</li></ul><p style="margin-bottom: 12px; line-height: 1.6; color: #e5253a; font-weight: 600;">Note: The full instructions are available in WORK_INSTRUCTIONS.md. If you see this message, the file could not be loaded automatically.</p></div>';
         }
+
+        // Shareable Content Studio Functions - Commented out
+        /*
+        function showShareableStudio() {
+            const modal = document.getElementById('shareableStudioModal');
+            if (modal) {
+                modal.style.display = 'block';
+                switchStudioTab('quotes');
+            }
+        }
+
+        function closeShareableStudio() {
+            const modal = document.getElementById('shareableStudioModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function switchStudioTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.studio-tab').forEach(t => {
+                t.style.display = 'none';
+            });
+            
+            // Reset all tab buttons
+            ['quotes', 'impact'].forEach(t => {
+                const btn = document.getElementById('tab-' + t);
+                if (btn) {
+                    btn.style.opacity = '0.7';
+                }
+            });
+            
+            // Show selected tab
+            const selectedTab = document.getElementById('studio-' + tab);
+            if (selectedTab) {
+                selectedTab.style.display = 'block';
+            }
+            
+            // Highlight selected button
+            const selectedBtn = document.getElementById('tab-' + tab);
+            if (selectedBtn) {
+                selectedBtn.style.opacity = '1';
+            }
+        }
+        */
+
+        // Shareable Content Studio Functions - Commented out (continued)
+        /*
+        function extractQuotes() {
+            const container = document.getElementById('quotesContainer');
+            if (!container) return;
+            
+            container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Extracting quotes...</p>';
+            
+            const quotes = [];
+            
+            // Extract quotes from articles
+            articles.forEach((article, index) => {
+                if (article.body) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = article.body;
+                    const text = tempDiv.textContent || tempDiv.innerText || '';
+                    
+                    // Find sentences that look like quotes (contain quotes, are emotional, etc.)
+                    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+                    
+                    sentences.forEach(sentence => {
+                        const trimmed = sentence.trim();
+                        // Look for compelling quotes (contain emotional words, questions, or are in quotes)
+                        if (trimmed.length > 30 && trimmed.length < 200) {
+                            if (trimmed.includes('"') || 
+                                /(amazing|incredible|wonderful|grateful|thankful|proud|honored|blessed|inspiring|life-saving)/i.test(trimmed) ||
+                                trimmed.includes('?') ||
+                                trimmed.match(/^[A-Z]/)) {
+                                quotes.push({
+                                    text: trimmed,
+                                    source: article.title || 'Article ' + (index + 1),
+                                    type: 'article'
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Extract quotes from Employee Spotlight
+            if (employeeSpotlight.questions && employeeSpotlight.questions.length > 0) {
+                employeeSpotlight.questions.forEach(qa => {
+                    if (qa.answer && qa.answer.trim() && qa.answer.trim().length > 20) {
+                        quotes.push({
+                            text: qa.answer.trim(),
+                            source: employeeSpotlight.name + ' - ' + qa.question,
+                            type: 'spotlight'
+                        });
+                    }
+                });
+            }
+            
+            // Extract from Thank the Donor
+            if (thankTheDonor.enabled && thankTheDonor.body) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = thankTheDonor.body;
+                const text = tempDiv.textContent || tempDiv.innerText || '';
+                const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20 && s.trim().length < 200);
+                sentences.forEach(sentence => {
+                    quotes.push({
+                        text: sentence.trim(),
+                        source: 'Thank the Donor',
+                        type: 'donor'
+                    });
+                });
+            }
+            
+            // Limit to top 12 most compelling quotes
+            const topQuotes = quotes.slice(0, 12);
+            
+            if (topQuotes.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">No quotes found. Add more content to your articles to extract quotes.</p>';
+                return;
+            }
+            
+            // Generate quote cards
+            container.innerHTML = '';
+            topQuotes.forEach((quote, idx) => {
+                const cardId = 'quote-card-' + idx;
+                const card = createQuoteCard(quote, cardId);
+                container.appendChild(card);
+            });
+        }
+
+        function createQuoteCard(quote, cardId) {
+            const card = document.createElement('div');
+            card.id = cardId;
+            card.style.cssText = 'position: relative; background: white; border-radius: 12px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 300px; display: flex; flex-direction: column; justify-content: center;';
+            
+            // Create styled quote card with ImpactLife branding
+            const quoteStyles = [
+                { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', textColor: 'white', accent: '#f4b322' },
+                { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', textColor: 'white', accent: '#0c2a4a' },
+                { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', textColor: 'white', accent: '#f4b322' },
+                { bg: '#0c2a4a', textColor: 'white', accent: '#f4b322' },
+                { bg: '#c20f2e', textColor: 'white', accent: '#f4b322' },
+                { bg: '#ef7b25', textColor: 'white', accent: '#0c2a4a' }
+            ];
+            
+            const style = quoteStyles[Math.floor(Math.random() * quoteStyles.length)];
+            
+            card.innerHTML = `
+                <div style="background: ${style.bg}; color: ${style.textColor}; padding: 40px; border-radius: 12px; position: relative; min-height: 280px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 48px; opacity: 0.3; position: absolute; top: 20px; left: 20px;">"</div>
+                    <div style="font-size: 24px; font-weight: 600; line-height: 1.5; margin-bottom: 20px; position: relative; z-index: 1; font-style: italic;">
+                        ${escapeHtml(quote.text)}
+                    </div>
+                    <div style="border-top: 2px solid ${style.accent}; padding-top: 16px; margin-top: auto; position: relative; z-index: 1;">
+                        <div style="font-size: 14px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">${escapeHtml(quote.source)}</div>
+                        <div style="font-size: 12px; opacity: 0.7;">ImpactLife</div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <button onclick="downloadQuoteCard('${cardId}')" style="flex: 1; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                        📥 Download Image
+                    </button>
+                    <button onclick="copyQuoteText('${cardId}')" style="flex: 1; padding: 10px; background: #0c2a4a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                        📋 Copy Text
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function downloadQuoteCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            
+            // Get the inner quote card div (the styled one)
+            const quoteDiv = card.querySelector('div[style*="background"]');
+            if (!quoteDiv) return;
+            
+            html2canvas(quoteDiv, {
+                backgroundColor: null,
+                scale: 2,
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'quote-card-' + Date.now() + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function copyQuoteText(cardId) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            
+            const quoteText = card.querySelector('div[style*="font-size: 24px"]');
+            if (!quoteText) return;
+            
+            const text = quoteText.textContent.trim();
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Quote text copied to clipboard!');
+            });
+        }
+
+        function generateImpactGraphics() {
+            const container = document.getElementById('impactContainer');
+            if (!container) return;
+            
+            container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Generating impact graphics...</p>';
+            
+            // Calculate impact metrics
+            const articleCount = articles.length;
+            const imageCount = articles.reduce((sum, article) => {
+                return sum + (article.galleryUrls ? article.galleryUrls.filter(url => url && url.trim()).length : 0);
+            }, 0);
+            
+            // Estimate lives impacted (rough calculation: each article could represent multiple donations)
+            const estimatedLives = articleCount * 3; // Rough estimate
+            
+            // Generate impact graphics
+            container.innerHTML = '';
+            
+            // Lives Impacted Card
+            const livesCard = createImpactCard({
+                title: 'Lives Impacted',
+                value: estimatedLives,
+                subtitle: 'This week\'s stories',
+                icon: '❤️',
+                color: '#c20f2e'
+            });
+            container.appendChild(livesCard);
+            
+            // Stories Shared Card
+            const storiesCard = createImpactCard({
+                title: 'Stories Shared',
+                value: articleCount,
+                subtitle: 'Inspiring articles',
+                icon: '📖',
+                color: '#0c2a4a'
+            });
+            container.appendChild(storiesCard);
+            
+            // Images Captured Card
+            if (imageCount > 0) {
+                const imagesCard = createImpactCard({
+                    title: 'Moments Captured',
+                    value: imageCount,
+                    subtitle: 'Photos & memories',
+                    icon: '📸',
+                    color: '#ef7b25'
+                });
+                container.appendChild(imagesCard);
+            }
+            
+            // Community Impact Card
+            const communityCard = createImpactCard({
+                title: 'Community Impact',
+                value: '100%',
+                subtitle: 'Dedicated to saving lives',
+                icon: '🌟',
+                color: '#764ba2'
+            });
+            container.appendChild(communityCard);
+        }
+
+        function createImpactCard(data) {
+            const card = document.createElement('div');
+            const cardId = 'impact-card-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            card.id = cardId;
+            card.style.cssText = 'position: relative; background: white; border-radius: 12px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 300px; display: flex; flex-direction: column; justify-content: center;';
+            
+            card.innerHTML = `
+                <div style="background: linear-gradient(135deg, ${data.color} 0%, ${data.color}dd 100%); color: white; padding: 40px; border-radius: 12px; text-align: center; min-height: 280px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 64px; margin-bottom: 16px;">${data.icon}</div>
+                    <div style="font-size: 72px; font-weight: 700; margin-bottom: 8px; line-height: 1;">${data.value}</div>
+                    <div style="font-size: 24px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">${escapeHtml(data.title)}</div>
+                    <div style="font-size: 16px; opacity: 0.9; margin-top: 8px;">${escapeHtml(data.subtitle)}</div>
+                    <div style="margin-top: 24px; padding-top: 24px; border-top: 2px solid rgba(255,255,255,0.3);">
+                        <div style="font-size: 14px; opacity: 0.8;">ImpactLife</div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <button onclick="downloadImpactCard('${cardId}')" style="width: 100%; padding: 10px; background: ${data.color}; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                        📥 Download Image
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function downloadImpactCard(cardId) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            
+            const impactDiv = card.querySelector('div[style*="background: linear-gradient"]');
+            if (!impactDiv) return;
+            
+            html2canvas(impactDiv, {
+                backgroundColor: null,
+                scale: 2,
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'impact-graphic-' + Date.now() + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+        */
 
         function importHtml() {
             const textarea = document.getElementById('importHtmlTextarea');
@@ -2322,7 +3043,10 @@
                         imageUrl: imgEl ? imgEl.getAttribute('src') || '' : '',
                         imageAlt: imgEl ? imgEl.getAttribute('alt') || '' : '',
                         videoUrl: '',
-                        galleryUrls: []
+                        galleryUrls: [],
+                        galleryCaptions: [],
+                        collapsed: false,
+                        galleryCollapsed: false
                     };
                     
                     // Extract video URL if present
@@ -2496,7 +3220,9 @@
                             imageAlt: importedArticle.imageAlt || '',
                             videoUrl: importedArticle.videoUrl || '',
                             galleryUrls: importedArticle.galleryUrls || [],
-                            collapsed: false
+                            galleryCaptions: importedArticle.galleryCaptions || [],
+                            collapsed: false,
+                            galleryCollapsed: false
                         };
                         articles.push(article);
                     });
