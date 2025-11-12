@@ -160,6 +160,9 @@
                         <div id="dateRequiredMessage" style="margin-top: 8px; padding: 8px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; color: #856404; font-size: 14px; display: block;">
                             ⚠️ Please set a publication date before adding articles or filling out content.
                         </div>
+                        <div id="spinternetCallout" style="margin-top: 12px; padding: 12px; background: #e7f3ff; border: 1px solid #0c2a4a; border-radius: 4px; color: #0c2a4a; font-size: 14px; display: none; line-height: 1.5;">
+                            <strong>📁 Spinternet Folder Setup:</strong> Please <a href="https://www.bloodcenter.org/spinternet/file_manager.aspx" target="_blank" style="color: #0c2a4a; text-decoration: underline; font-weight: 600;">login</a> to Spinternet, create a new folder under FGN labeled <strong id="spinternetDateDisplay"></strong> before moving on. All photos for this issue should be uploaded to that newly created folder.
+                        </div>
                     </div>
                 </div>
 
@@ -417,10 +420,31 @@
             publicationDate = formatDate(dateString);
             publicationDateISO = dateString || ''; // Store ISO format for schema
             
-            // Enable/disable article controls based on whether date is set
+            // Update Spinternet callout
+            const spinternetCallout = document.getElementById('spinternetCallout');
+            const spinternetDateDisplay = document.getElementById('spinternetDateDisplay');
+            const dateRequiredMessage = document.getElementById('dateRequiredMessage');
+            
             if (dateString && dateString.trim()) {
+                // Show callout and update date display with MMDDYYYY format
+                if (spinternetCallout) {
+                    spinternetCallout.style.display = 'block';
+                }
+                if (spinternetDateDisplay) {
+                    spinternetDateDisplay.textContent = formatDateMMDDYYYY(dateString);
+                }
+                if (dateRequiredMessage) {
+                    dateRequiredMessage.style.display = 'none';
+                }
                 enableArticleControls();
             } else {
+                // Hide callout
+                if (spinternetCallout) {
+                    spinternetCallout.style.display = 'none';
+                }
+                if (dateRequiredMessage) {
+                    dateRequiredMessage.style.display = 'block';
+                }
                 disableArticleControls();
             }
             
