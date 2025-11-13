@@ -1981,12 +1981,15 @@
                                     '        ',
                                     '        // Pause auto-play on hover and show arrows',
                                     '        if (galleryContainer) {',
+                                    '          const captionEl = document.getElementById("gallery-caption-' + articleImageId + '");',
                                     '          galleryContainer.addEventListener("mouseenter", function() {',
                                     '            // Pause auto-play when hovering over the gallery',
                                     '            pauseAutoPlay_' + jsSafeId + '();',
                                     '            // Show arrows more prominently',
                                     '            if (leftArrow) leftArrow.style.opacity = "1";',
                                     '            if (rightArrow) rightArrow.style.opacity = "1";',
+                                    '            // Change caption color to white',
+                                    '            if (captionEl) captionEl.style.color = "#fff";',
                                     '          });',
                                     '          galleryContainer.addEventListener("mouseleave", function() {',
                                     '            // Resume auto-play when mouse leaves',
@@ -1994,6 +1997,8 @@
                                     '            // Make arrows less prominent',
                                     '            if (leftArrow) leftArrow.style.opacity = "0.7";',
                                     '            if (rightArrow) rightArrow.style.opacity = "0.7";',
+                                    '            // Change caption color back to gray',
+                                    '            if (captionEl) captionEl.style.color = "#666";',
                                     '          });',
                                     '        }',
                                     '        ',
@@ -2099,7 +2104,7 @@
                             mediaContent += '<button type="button" class="gallery-arrow gallery-arrow-right" id="gallery-arrow-right-' + imageId + '" aria-label="Next image" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(12, 42, 74, 0.8); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; opacity: 0.7; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">›</button>';
                             mediaContent += '</div>';
                             // Add caption element for gallery (will be updated by script)
-                            mediaContent += '<p class="image-caption" id="gallery-caption-' + imageId + '" style="margin-top: 12px; margin-bottom: 0; font-size: 14px; color: #666; font-style: italic; text-align: center; min-height: 20px; display: none;"></p>';
+                            mediaContent += '<p class="image-caption" id="gallery-caption-' + imageId + '" style="margin-top: 12px; margin-bottom: 0; font-size: 14px; color: #666; font-style: italic; text-align: center; min-height: 20px; display: none; transition: color 0.3s ease;"></p>';
                         } else {
                             // Single image - no ID needed (no slideshow)
                             mediaContent += '<img class="masonry-image" alt="' + escapeHtml(imageAlt) + '" src="' + escapeHtml(imageSrc) + '" />';
