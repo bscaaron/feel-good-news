@@ -170,6 +170,10 @@
                     <!-- Articles will be dynamically added here -->
                 </div>
 
+                <div class="articles-container" id="inTheNewsContainer" style="display: none;">
+                    <!-- In the News articles will be dynamically added here -->
+                </div>
+
                 <div class="employee-spotlight-section article-group collapsed" id="employeeSpotlightGroup">
                     <div class="article-header" onclick="toggleEmployeeSpotlight()">
                         <div class="article-header-left">
@@ -204,19 +208,26 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button type="button" class="add-article-btn" onclick="addArticle()">
-                        + Add Article
-                    </button>
-                    <button type="button" class="add-article-btn" onclick="addThankDonor()" id="addThankDonorBtn">
-                        + Add Thank the Donor
-                    </button>
-                    <button type="button" class="copy-btn" onclick="copyToClipboard()">
-                        Copy Code
-                    </button>
-                    <button type="button" class="copy-btn" onclick="showImportModal()" style="background: #0c2a4a;">
-                        Import HTML
-                    </button>
+                <div class="form-actions" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button type="button" class="add-article-btn" onclick="addArticle()">
+                            + Add Article
+                        </button>
+                        <button type="button" class="add-article-btn" onclick="addInTheNews()" id="addInTheNewsBtn">
+                            + Add In the News
+                        </button>
+                        <button type="button" class="add-article-btn" onclick="addThankDonor()" id="addThankDonorBtn">
+                            + Add Thank the Donor
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button type="button" class="copy-btn" onclick="copyToClipboard()">
+                            Copy Code
+                        </button>
+                        <button type="button" class="copy-btn" onclick="showImportModal()" style="background: #0c2a4a;">
+                            Import HTML
+                        </button>
+                    </div>
                     <!-- Shareable Content Studio - Commented out
                     <button type="button" class="copy-btn" onclick="showShareableStudio()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         🎨 Shareable Content Studio
@@ -303,11 +314,14 @@
         };
         let thankDonorQuill = null; // Store Quill editor for thank the donor content
         let employeeSpotlightCollapsed = true; // Track Employee Spotlight collapsed state (starts collapsed)
+        let inTheNewsLinks = []; // Array for "In the News" article links: {url: '', title: '', imageUrl: '', description: '', fetched: false}
+        let inTheNewsEnabled = false; // Track if "In the News" section is enabled
+        let inTheNewsCollapsed = true; // Track "In the News" collapsed state (starts collapsed)
 
                                                                                                                                 // Initialize template content (embedded to avoid CORS issues with file://)
         function initializeTemplate() {
             // Template content from output.html - embedded directly to avoid CORS issues
-            const templateString = "<meta charset=\"utf-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title></title>\n<meta name=\"description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:title\" content=\"Feel-Good News - ImpactLife\" /><meta property=\"og:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:site_name\" content=\"ImpactLife\" /><meta property=\"og:type\" content=\"article\" /><meta name=\"twitter:card\" content=\"summary_large_image\" /><meta name=\"twitter:title\" content=\"Feel-Good News - ImpactLife\" /><meta name=\"twitter:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" />\n<style type=\"text/css\">/* Enhanced Feel-Good News Layout */\n    :root{\n      --navy:#0c2a4a;\n      --red:#e5253a;\n      --yellow:#f4b000;\n      --gray-100:#f6f7f9;\n      --radius:18px;\n      --gap:24px;\n    }\n    *{box-sizing:border-box}\n    body{background:var(--gray-100);}\n\n    .wrapper{max-width:1120px;margin-inline:auto;padding:28px 18px 56px;}\n\n    /* Hero Section */\n    header.hero{\n      background:var(--navy);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:36px 24px 52px;\n      position:relative;\n      overflow:hidden;\n    }\n    .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}\n    .brand img{height:28px;width:auto}\n    .hero h1{margin:8px 0 10px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; font-size:5rem;}\n    h1:before{display:none;}\n    .date-badge{\n      position:absolute;right:18px;top:18px;\n      background:var(--red);color:#fff;\n      padding:10px 14px;border-radius:999px;\n      font-weight:700;font-size:14px\n    }\n    .hero-stripe{position:absolute;left:0;bottom:0;width:100%;height:30px;display:flex;flex-direction:column;}\n    .hero-stripe div{width:100%;height:10px;}\n    .hero-stripe-top{background:#c20f2e;}\n    .hero-stripe-middle{background:#ef7b25;}\n    .hero-stripe-bottom{background:#f4b222;}\n    .spotlight-stripe{position:absolute;left:0;bottom:0;width:100%;height:30px;display:flex;flex-direction:column;}\n    .spotlight-stripe div{width:100%;height:10px;}\n    .spotlight-stripe-top{background:#c20f2e;}\n    .spotlight-stripe-middle{background:#ef7b25;}\n    .spotlight-stripe-bottom{background:#f4b222;}\n\n    /* Main Content Grid - Masonry Style */\n    .main-grid{column-count:2;column-gap:var(--gap);margin-top:var(--gap);}\n    .main-content{column-break-inside:avoid;break-inside:avoid;}\n    .sidebar{grid-column:2;}\n    \n    /* Masonry Flow Classes */\n    .masonry-item{break-inside:avoid;margin-bottom:var(--gap);display:inline-block;width:100%;}\n    .masonry-item:last-child{margin-bottom:0;}\n    \n    /* Article Cards */\n    .card{\n      background:#fff;border-radius:var(--radius);\n      padding:22px 20px;box-shadow:0 2px 10px rgba(12,42,74,.06);\n      margin-bottom:var(--gap);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .card:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.15);\n      background:var(--navy);\n      color:#fff;\n    }\n    .card h2{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; color:var(--navy); margin-bottom:12px;}\n    .card:hover h2{color:#fff;}\n    .card blockquote{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; font-style:italic; color:var(--red); border-left:4px solid var(--red); padding-left:16px; margin:16px 0;}\n    .card:hover blockquote{color:#fff; border-left-color:#fff;}\n    \n    /* Links */\n    a{color:var(--red); text-decoration:none;}\n    a:hover{text-decoration:underline;}\n    .card:hover a{color:#fff;}\n    \n    /* Button Styling */\n    .btn{font-size:inherit; padding:.625em 1.5em;}\n    \n    /* Media Grid */\n    .media{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:14px}\n    .media img{width:100%;height:auto;border-radius:14px;display:block}\n    .media.single{grid-template-columns:1fr}\n    .masonry-image{width:100%; height:auto; display:block; max-width:500px; opacity:1; transition: opacity 1s ease-in-out;}\n    \n    /* Video Container */\n    .video-container{\n      position:relative;\n      width:100%;\n      height:0;\n      padding-bottom:56.25%; /* 16:9 aspect ratio */\n      overflow:hidden;\n      border-radius:14px;\n    }\n    .video-container iframe{\n      position:absolute;\n      top:0;\n      left:0;\n      width:100%;\n      height:100%;\n    }\n    \n    /* Sidebar */\n    .sidebar{display:none;}\n    \n    /* Bottom Spotlight Section */\n    .bottom-spotlight{\n      grid-column:1 / -1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n    }\n    \n    /* Thank The Donor Section */\n    .thank-donor-section{\n      grid-column:1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n      background:var(--yellow);\n      color:var(--navy);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .thank-donor-section:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(244,176,0,.3);\n      background:#e6a600;\n    }\n    .thank-donor-section h2{\n      color:var(--navy);\n    }\n    \n    /* Callout Sections */\n    .callout{\n      background:var(--navy);color:#fff;border-radius:var(--radius);\n      padding:22px 20px;\n      transition: all 0.3s ease;\n      cursor: pointer;\n      position:relative;\n      overflow:hidden;\n    }\n    .callout.bottom-spotlight{\n      padding-bottom:52px;\n    }\n    .callout:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.3);\n      background:#0a1f3a;\n    }\n    .callout h2{color:#fff; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    .spotlight-grid{display:grid;gap:14px;grid-template-columns:1fr 1.15fr;align-items:start;}\n    .spotlight-photo{width:100%;height:auto;max-height:500px;border-radius:16px;display:block;object-fit:cover;}\n    .pill{display:inline-block;background:var(--red);color:#fff;font-weight:800;\n      padding:6px 12px;border-radius:999px;margin-bottom:10px;}\n\n    /* Special Sections */\n    .highlight-box{\n      background:linear-gradient(135deg, var(--red) 0%, #BB2031 100%);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:20px;\n      margin:var(--gap) 0;\n    }\n    .highlight-box h3{color:#fff; margin-bottom:12px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    \n    /* Footer */\n    footer{margin-top:var(--gap);background:#001a33;color:#dbe6f2;border-radius:var(--radius);}\n    footer .inner{padding:16px 20px;text-align:center;font-size:14px}\n\n    /* Side-by-Side Container */\n    .side-by-side-container{\n      display:grid;\n      grid-template-columns:1fr 1fr;\n      gap:var(--gap);\n      margin-top:var(--gap);\n      grid-column:1 / -1;\n    }\n    .side-by-side-container .thank-donor-section,\n    .side-by-side-container .bottom-spotlight{\n      margin:0;\n    }\n    \n    /* Responsive Design */\n    @media (max-width:980px){\n      .main-grid{column-count:1;}\n      .main-content{grid-column:1; order:1; display:contents;}\n      .sidebar{grid-column:1; order:2; display:contents;}\n      .thank-donor-section{grid-column:1; order:3;}\n      .bottom-spotlight{grid-column:1; order:4;}\n      .side-by-side-container{grid-template-columns:1fr;}\n      .spotlight-grid{grid-template-columns:1fr}\n      .media{grid-template-columns:1fr}\n      .date-badge{position:static;display:inline-block;margin-top:8px}\n    }\n    \n    @media (max-width:768px){\n      .wrapper{padding:18px 12px 36px;}\n      .hero{padding:24px 18px 52px;}\n      .card{padding:18px 16px;}\n      .callout{padding:18px 16px;}\n      .callout.bottom-spotlight{padding-bottom:52px;}\n    }\n</style>\n<div class=\"wrapper\"><!-- HERO -->\n<header aria-labelledby=\"title\" class=\"hero\">\n<div class=\"date-badge\">$FORMVALUE_PUBLICATION_DATE</div>\n\n<h1 id=\"title\" style=\"color:white;\">FEEL-GOOD NEWS</h1>\n\n<div class=\"hero-stripe\">\n<div class=\"hero-stripe-top\"></div>\n<div class=\"hero-stripe-middle\"></div>\n<div class=\"hero-stripe-bottom\"></div>\n</div>\n</header>\n\n\n<!-- Main Content - Masonry Layout -->\n<div class=\"main-grid\">\n  <div class=\"main-content\">\n  \n    <!-- Left Column -->\n\n    <!-- Story 1 -->\n    <article class=\"card masonry-item\" style=\"order: 1;\">\n      <h2>$FORMVALUE_TITLE_01</h2>\n      <p>$FORMVALUE_BODY_CONTENT_01</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_01\" id=\"$FORMVALUE_IMAGE_ID_01\" src=\"$FORMVALUE_IMAGE_URL_01\" />\n      </div>\n    </article>\n\n    <!-- Story 3 -->\n    <article class=\"card masonry-item\" style=\"order: 3;\">\n      <h2>$FORMVALUE_TITLE_03</h2>\n      <p>$FORMVALUE_BODY_CONTENT_03</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_03\" id=\"$FORMVALUE_IMAGE_ID_03\" src=\"$FORMVALUE_IMAGE_URL_03\" />\n      </div>\n    </article>\n  </div>\n\n\n  <!-- Right Column -->\n\n  <div class=\"sidebar\">\n  \n    <!-- Story 2 -->\n    <article class=\"card masonry-item\" style=\"order: 2;\">\n      <h2>$FORMVALUE_TITLE_02</h2>\n      <p>$FORMVALUE_BODY_CONTENT_02</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_02\" id=\"$FORMVALUE_IMAGE_ID_02\" src=\"$FORMVALUE_IMAGE_URL_02\" />\n      </div>\n    </article>\n\n    <!-- Story 4 -->\n    <article class=\"card masonry-item\" style=\"order: 4;\">\n      <h2>$FORMVALUE_TITLE_04</h2>\n      <p>$FORMVALUE_BODY_CONTENT_04</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_04\" id=\"$FORMVALUE_IMAGE_ID_04\" src=\"$FORMVALUE_IMAGE_URL_04\" />\n        <div class=\"video-container\">\n          <iframe allowfullscreen=\"\" frameborder=\"0\" mozallowfullscreen=\"\" src=\"$FORMVALUE_VIDEO_URL_04\" webkitallowfullscreen=\"\"></iframe>\n        </div>\n      </div>\n    </article>\n\n  </div>\n\n</div>\n<!-- Employee Spotlight -->\n\n<section class=\"callout bottom-spotlight\" style=\"order: 5;\"><span class=\"pill\">EMPLOYEE SPOTLIGHT</span>\n\n<h2 style=\"text-align: center;\">$EMPLOYEE_SPOTLIGHT_NAME</h2>\n<p style=\"text-align: center; margin-top: 8px; margin-bottom: 16px; font-size: 1.1em;\">$EMPLOYEE_SPOTLIGHT_TITLE</p>\n\n<div class=\"spotlight-grid\">\n<div><img alt=\"$EMPLOYEE_SPOTLIGHT_NAME, $EMPLOYEE_SPOTLIGHT_TITLE\" class=\"spotlight-photo\" src=\"$EMPLOYEE_SPOTLIGHT_URL\" /></div>\n\n<div>\n<p>$EMPLOYEE_SPOTLIGHT_CONTENT</p>\n</div>\n</div>\n\n<div class=\"spotlight-stripe\">\n<div class=\"spotlight-stripe-top\"></div>\n<div class=\"spotlight-stripe-middle\"></div>\n<div class=\"spotlight-stripe-bottom\"></div>\n</div>\n</section>\n</div>\n<!-- Footer -->\n\n<footer>\n<div class=\"inner\">\n<p>Feel-Good News is published every Friday to inspire + connect our ImpactLife team.</p>\n</div>\n</footer>\n</div>\n<script>\n  (function () {\n    // Form Gallery\n    const formImages = [\n      \"$FORMVALUE_IMAGE_GALLERY_URL_01\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_02\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_03\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_04\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_05\"\n    ];\n    let formIndex = 0;\n    const adamImg = document.getElementById(\"$FORMVALUE_IMAGE_GALLERY_ID_01\");\n    \n    if (formImg) {\n      setInterval(function () {\n        // fade out\n        formImg.style.opacity = 0;\n        \n        setTimeout(() => {\n          // change image once faded\n          formIndex = (formIndex + 1) % formImages.length;\n          formImg.src = formImages[formIndex];\n          // fade in\n          formImg.style.opacity = 1;\n        }, 1000); // matches transition duration\n      }, 5000); // switch every 5 seconds\n    }\n  })();\n" + '</' + 'script>' + "<script>\n  // Hide on-page banner and footer\n  document.addEventListener('DOMContentLoaded', function() {\n    // Hide any on-page banner divs\n    const banners = document.querySelectorAll('div[class*=\"banner\"], div[id*=\"banner\"], .banner, #banner');\n    banners.forEach(banner => {\n      if (banner) {\n        banner.style.display = 'none';\n      }\n    });\n    \n    // Hide footer with specific selector\n    const footer = document.querySelector('#aspnetForm > div.site_wrapper > footer');\n    if (footer) {\n      footer.style.display = 'none';\n    }\n    \n    // Also hide any other footer elements as backup\n    const allFooters = document.querySelectorAll('footer');\n    allFooters.forEach(footer => {\n      if (footer && !footer.classList.contains('inner')) {\n        footer.style.display = 'none';\n      }\n    });\n    \n    // Set specific element width to 100%\n    const targetElement = document.querySelector('#main > div.content.clearfix > div > div > div.group_2of3.first');\n    if (targetElement) {\n      targetElement.style.width = '100%';\n    }\n    \n    // Hide and remove sizing from specific elements\n    const firstChild = document.querySelector('#main > div.content.clearfix > div > div > div:nth-child(1)');\n    if (firstChild) {\n      firstChild.style.display = 'none';\n      firstChild.style.width = '0';\n      firstChild.style.height = '0';\n      firstChild.style.margin = '0';\n      firstChild.style.padding = '0';\n    }\n    \n    // Hide navigation\n    const nav = document.querySelector('#main > nav');\n    if (nav) {\n      nav.style.display = 'none';\n    }\n  }); \n" + '</' + 'script>' + "<script>\n(function () {\n  var NEW_NAME = \"ImpactLife\";\n  var OLD_NAME = \"MVRBC\";\n\n  // --- 1) Update JSON-LD (application/ld+json) ---\n  function mutateNames(obj) {\n    if (!obj || typeof obj !== \"object\") return;\n    if (Array.isArray(obj)) {\n      obj.forEach(mutateNames);\n      return;\n    }\n    // Replace exact \"MVRBC\" in common places (and anywhere 'name' equals it)\n    if (typeof obj.name === \"string\" && obj.name.trim() === OLD_NAME) {\n      obj.name = NEW_NAME;\n    }\n    if (obj.author && typeof obj.author === \"object\") {\n      if (typeof obj.author.name === \"string\" && obj.author.name.trim() === OLD_NAME) {\n        obj.author.name = NEW_NAME;\n      }\n    }\n    if (obj.publisher && typeof obj.publisher === \"object\") {\n      if (typeof obj.publisher.name === \"string\" && obj.publisher.name.trim() === OLD_NAME) {\n        obj.publisher.name = NEW_NAME;\n      }\n    }\n    // Recurse through all properties\n    Object.keys(obj).forEach(function (k) {\n      if (obj[k] && typeof obj[k] === \"object\") mutateNames(obj[k]);\n    });\n  }\n\n  Array.prototype.forEach.call(\n    document.querySelectorAll('script[type=\"application/ld+json\"]'),\n    function (node) {\n      try {\n        // Some sites embed minified JSON; keep formatting minimal on write-back\n        var data = JSON.parse(node.textContent.trim());\n        mutateNames(data);\n        node.textContent = JSON.stringify(data);\n      } catch (e) {\n        // Ignore scripts that aren't valid JSON\n      }\n    }\n  );\n\n  // --- 2) (Optional) Replace visible text \"MVRBC\" with \"ImpactLife\" ---\n  // Comment out this block if you only want the JSON-LD change.\n  (function replaceVisibleText() {\n    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {\n      acceptNode: function (n) {\n        // Skip empty/whitespace text nodes\n        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;\n        // Skip text under these elements\n        var p = n.parentNode;\n        while (p) {\n          var tag = (p.tagName || \"\").toLowerCase();\n          if (tag === \"script\" || tag === \"style\" || tag === \"noscript\" || tag === \"textarea\") {\n            return NodeFilter.FILTER_REJECT;\n          }\n          p = p.parentNode;\n        }\n        return NodeFilter.FILTER_ACCEPT;\n      }\n    });\n\n    var re = new RegExp(\"\\\\b\" + OLD_NAME.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\") + \"\\\\b\", \"g\");\n    var node;\n    while ((node = walker.nextNode())) {\n      if (re.test(node.nodeValue)) {\n        node.nodeValue = node.nodeValue.replace(re, NEW_NAME);\n      }\n    }\n   })();\n })();\n " + '</' + 'script>' + "<script>\n // Override schema.org data for social media previews\n (function() {\n   // Update any existing JSON-LD schema\n   const jsonLdScripts = document.querySelectorAll('script[type=\"application/ld+json\"]');\n   jsonLdScripts.forEach(script => {\n     try {\n       const data = JSON.parse(script.textContent);\n       if (data.publisher && data.publisher.name === 'MVRBC') {\n         data.publisher.name = 'ImpactLife';\n       }\n       if (data.author && data.author.name === 'MVRBC') {\n         data.author.name = 'ImpactLife';\n       }\n       if (data.name && data.name.includes('MVRBC')) {\n         data.name = data.name.replace(/MVRBC/g, 'ImpactLife');\n       }\n       script.textContent = JSON.stringify(data);\n     } catch (e) {\n       // Ignore invalid JSON\n     }\n   });\n   \n   // Add new schema to override any global schema\n   const newSchema = {\n     \"@context\": \"https://schema.org\",\n     \"@type\": \"Article\",\n     \"headline\": \"Feel-Good News - ImpactLife\",\n     \"description\": \"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\",\n     \"publisher\": {\n       \"@type\": \"Organization\",\n       \"name\": \"ImpactLife\",\n       \"url\": \"https://www.bloodcenter.org\"\n     },\n     \"author\": {\n       \"@type\": \"Organization\", \n       \"name\": \"ImpactLife\"\n     },\n     \"datePublished\": \"$SCHEMA_DATE_PUBLISHED\",\n     \"dateModified\": \"$SCHEMA_DATE_MODIFIED\"\n   };\n   \n   const schemaScript = document.createElement('script');\n   schemaScript.type = 'application/ld+json';\n   schemaScript.textContent = JSON.stringify(newSchema);\n   document.head.appendChild(schemaScript);\n })();\n " + '</' + 'script>' + "";
+            const templateString = "<meta charset=\"utf-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n<title></title>\n<meta name=\"description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:title\" content=\"Feel-Good News - ImpactLife\" /><meta property=\"og:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" /><meta property=\"og:site_name\" content=\"ImpactLife\" /><meta property=\"og:type\" content=\"article\" /><meta name=\"twitter:card\" content=\"summary_large_image\" /><meta name=\"twitter:title\" content=\"Feel-Good News - ImpactLife\" /><meta name=\"twitter:description\" content=\"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\" />\n<style type=\"text/css\">/* Enhanced Feel-Good News Layout */\n    :root{\n      --navy:#0c2a4a;\n      --red:#e5253a;\n      --yellow:#f4b000;\n      --gray-100:#f6f7f9;\n      --radius:18px;\n      --gap:24px;\n    }\n    *{box-sizing:border-box}\n    body{background:var(--gray-100);}\n\n    .wrapper{max-width:1120px;margin-inline:auto;padding:28px 18px 56px;}\n\n    /* Hero Section */\n    header.hero{\n      background:var(--navy);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:36px 24px 52px;\n      position:relative;\n      overflow:hidden;\n    }\n    .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}\n    .brand img{height:28px;width:auto}\n    .hero h1{margin:8px 0 10px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; font-size:5rem;}\n    h1:before{display:none;}\n    .date-badge{\n      position:absolute;right:18px;top:18px;\n      background:var(--red);color:#fff;\n      padding:10px 14px;border-radius:999px;\n      font-weight:700;font-size:14px\n    }\n    .hero-stripe{position:absolute;left:0;bottom:0;width:100%;height:30px;display:flex;flex-direction:column;}\n    .hero-stripe div{width:100%;height:10px;}\n    .hero-stripe-top{background:#c20f2e;}\n    .hero-stripe-middle{background:#ef7b25;}\n    .hero-stripe-bottom{background:#f4b222;}\n    .spotlight-stripe{position:absolute;left:0;bottom:0;width:100%;height:30px;display:flex;flex-direction:column;}\n    .spotlight-stripe div{width:100%;height:10px;}\n    .spotlight-stripe-top{background:#c20f2e;}\n    .spotlight-stripe-middle{background:#ef7b25;}\n    .spotlight-stripe-bottom{background:#f4b222;}\n\n    /* Main Content Grid - Masonry Style */\n    .main-grid{column-count:2;column-gap:var(--gap);margin-top:var(--gap);}\n    .main-content{column-break-inside:avoid;break-inside:avoid;}\n    .sidebar{grid-column:2;}\n    \n    /* Masonry Flow Classes */\n    .masonry-item{break-inside:avoid;margin-bottom:var(--gap);display:inline-block;width:100%;}\n    .masonry-item:last-child{margin-bottom:0;}\n    \n    /* Article Cards */\n    .card{\n      background:#fff;border-radius:var(--radius);\n      padding:22px 20px;box-shadow:0 2px 10px rgba(12,42,74,.06);\n      margin-bottom:var(--gap);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .card:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.15);\n      background:var(--navy);\n      color:#fff;\n    }\n    .card h2{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase; color:var(--navy); margin-bottom:12px; padding:4px 8px; line-height:1.3; min-height:2.6em;}\n    .card:hover h2{color:#fff;}\n    .card blockquote{font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; font-style:italic; color:var(--red); border-left:4px solid var(--red); padding-left:16px; margin:16px 0;}\n    .card:hover blockquote{color:#fff; border-left-color:#fff;}\n    \n    /* Links */\n    a{color:var(--red); text-decoration:none;}\n    a:hover{text-decoration:underline;}\n    .card:hover a{color:#fff;}\n    \n    /* Button Styling */\n    .btn{font-size:inherit; padding:.625em 1.5em;}\n    \n    /* Media Grid */\n    .media{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:14px}\n    .media img{width:100%;height:auto;border-radius:14px;display:block}\n    .media.single{grid-template-columns:1fr}\n    .masonry-image{width:100%; height:auto; display:block; max-width:500px; opacity:1; transition: opacity 1s ease-in-out;}\n    \n    /* Video Container */\n    .video-container{\n      position:relative;\n      width:100%;\n      height:0;\n      padding-bottom:56.25%; /* 16:9 aspect ratio */\n      overflow:hidden;\n      border-radius:14px;\n    }\n    .video-container iframe{\n      position:absolute;\n      top:0;\n      left:0;\n      width:100%;\n      height:100%;\n    }\n    \n    /* Sidebar */\n    .sidebar{display:none;}\n    \n    /* Bottom Spotlight Section */\n    .bottom-spotlight{\n      grid-column:1 / -1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n    }\n    \n    /* Thank The Donor Section */\n    .thank-donor-section{\n      grid-column:1;\n      margin-top:var(--gap);\n      min-height:fit-content;\n      background:var(--yellow);\n      color:var(--navy);\n      transition: all 0.3s ease;\n      cursor: pointer;\n    }\n    .thank-donor-section:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(244,176,0,.3);\n      background:#e6a600;\n    }\n    .thank-donor-section h2{\n      color:var(--navy);\n    }\n    \n    /* Callout Sections */\n    .callout{\n      background:var(--navy);color:#fff;border-radius:var(--radius);\n      padding:22px 20px;\n      transition: all 0.3s ease;\n      cursor: pointer;\n      position:relative;\n      overflow:hidden;\n    }\n    .callout.bottom-spotlight{\n      padding-bottom:52px;\n    }\n    .callout:hover{\n      transform: translateY(-4px);\n      box-shadow:0 8px 25px rgba(12,42,74,.3);\n      background:#0a1f3a;\n    }\n    .callout h2{color:#fff; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    .spotlight-grid{display:grid;gap:14px;grid-template-columns:1fr 1.15fr;align-items:start;}\n    .spotlight-photo{width:100%;height:auto;max-height:500px;border-radius:16px;display:block;object-fit:cover;}\n    .pill{display:inline-block;background:var(--red);color:#fff;font-weight:800;\n      padding:6px 12px;border-radius:999px;margin-bottom:10px;}\n\n    /* Special Sections */\n    .highlight-box{\n      background:linear-gradient(135deg, var(--red) 0%, #BB2031 100%);\n      color:#fff;\n      border-radius:var(--radius);\n      padding:20px;\n      margin:var(--gap) 0;\n    }\n    .highlight-box h3{color:#fff; margin-bottom:12px; font-family: 'Roboto Condensed', Helvetica, sans-serif; font-weight:700; text-transform:uppercase;}\n    \n    /* Footer */\n    footer{margin-top:var(--gap);background:#001a33;color:#dbe6f2;border-radius:var(--radius);}\n    footer .inner{padding:16px 20px;text-align:center;font-size:14px}\n\n    /* Side-by-Side Container */\n    .side-by-side-container{\n      display:grid;\n      grid-template-columns:1fr 1fr;\n      gap:var(--gap);\n      margin-top:var(--gap);\n      grid-column:1 / -1;\n    }\n    .side-by-side-container .thank-donor-section,\n    .side-by-side-container .bottom-spotlight{\n      margin:0;\n    }\n    \n    /* Responsive Design */\n    @media (max-width:980px){\n      .main-grid{column-count:1;}\n      .main-content{grid-column:1; order:1; display:contents;}\n      .sidebar{grid-column:1; order:2; display:contents;}\n      .thank-donor-section{grid-column:1; order:3;}\n      .bottom-spotlight{grid-column:1; order:4;}\n      .side-by-side-container{grid-template-columns:1fr;}\n      .spotlight-grid{grid-template-columns:1fr}\n      .media{grid-template-columns:1fr}\n      .date-badge{position:static;display:inline-block;margin-top:8px}\n    }\n    \n    @media (max-width:768px){\n      .wrapper{padding:18px 12px 36px;}\n      .hero{padding:24px 18px 52px;}\n      .card{padding:18px 16px;}\n      .callout{padding:18px 16px;}\n      .callout.bottom-spotlight{padding-bottom:52px;}\n    }\n</style>\n<div class=\"wrapper\"><!-- HERO -->\n<header aria-labelledby=\"title\" class=\"hero\">\n<div class=\"date-badge\">$FORMVALUE_PUBLICATION_DATE</div>\n\n<h1 id=\"title\" style=\"color:white;\">FEEL-GOOD NEWS</h1>\n\n<div class=\"hero-stripe\">\n<div class=\"hero-stripe-top\"></div>\n<div class=\"hero-stripe-middle\"></div>\n<div class=\"hero-stripe-bottom\"></div>\n</div>\n</header>\n\n\n<!-- Main Content - Masonry Layout -->\n<div class=\"main-grid\">\n  <div class=\"main-content\">\n  \n    <!-- Left Column -->\n\n    <!-- Story 1 -->\n    <article class=\"card masonry-item\" style=\"order: 1;\">\n      <h2>$FORMVALUE_TITLE_01</h2>\n      <p>$FORMVALUE_BODY_CONTENT_01</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_01\" id=\"$FORMVALUE_IMAGE_ID_01\" src=\"$FORMVALUE_IMAGE_URL_01\" />\n      </div>\n    </article>\n\n    <!-- Story 3 -->\n    <article class=\"card masonry-item\" style=\"order: 3;\">\n      <h2>$FORMVALUE_TITLE_03</h2>\n      <p>$FORMVALUE_BODY_CONTENT_03</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_03\" id=\"$FORMVALUE_IMAGE_ID_03\" src=\"$FORMVALUE_IMAGE_URL_03\" />\n      </div>\n    </article>\n  </div>\n\n\n  <!-- Right Column -->\n\n  <div class=\"sidebar\">\n  \n    <!-- Story 2 -->\n    <article class=\"card masonry-item\" style=\"order: 2;\">\n      <h2>$FORMVALUE_TITLE_02</h2>\n      <p>$FORMVALUE_BODY_CONTENT_02</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_02\" id=\"$FORMVALUE_IMAGE_ID_02\" src=\"$FORMVALUE_IMAGE_URL_02\" />\n      </div>\n    </article>\n\n    <!-- Story 4 -->\n    <article class=\"card masonry-item\" style=\"order: 4;\">\n      <h2>$FORMVALUE_TITLE_04</h2>\n      <p>$FORMVALUE_BODY_CONTENT_04</p>\n      <div class=\"media single\">\n        <img class=\"masonry-image\" alt=\"$FORMVALUE_IMAGE_ALT_04\" id=\"$FORMVALUE_IMAGE_ID_04\" src=\"$FORMVALUE_IMAGE_URL_04\" />\n        <div class=\"video-container\">\n          <iframe allowfullscreen=\"\" frameborder=\"0\" mozallowfullscreen=\"\" src=\"$FORMVALUE_VIDEO_URL_04\" webkitallowfullscreen=\"\"></iframe>\n        </div>\n      </div>\n    </article>\n\n  </div>\n\n</div>\n<!-- Employee Spotlight -->\n\n<section class=\"callout bottom-spotlight\" style=\"order: 5;\"><span class=\"pill\">EMPLOYEE SPOTLIGHT</span>\n\n<h2 style=\"text-align: center;\">$EMPLOYEE_SPOTLIGHT_NAME</h2>\n<p style=\"text-align: center; margin-top: 8px; margin-bottom: 16px; font-size: 1.1em;\">$EMPLOYEE_SPOTLIGHT_TITLE</p>\n\n<div class=\"spotlight-grid\">\n<div><img alt=\"$EMPLOYEE_SPOTLIGHT_NAME, $EMPLOYEE_SPOTLIGHT_TITLE\" class=\"spotlight-photo\" src=\"$EMPLOYEE_SPOTLIGHT_URL\" /></div>\n\n<div>\n<p>$EMPLOYEE_SPOTLIGHT_CONTENT</p>\n</div>\n</div>\n\n<div class=\"spotlight-stripe\">\n<div class=\"spotlight-stripe-top\"></div>\n<div class=\"spotlight-stripe-middle\"></div>\n<div class=\"spotlight-stripe-bottom\"></div>\n</div>\n</section>\n</div>\n<!-- Footer -->\n\n<footer>\n<div class=\"inner\">\n<p>Feel-Good News is published every Friday to inspire + connect our ImpactLife team.</p>\n</div>\n</footer>\n</div>\n<script>\n  (function () {\n    // Form Gallery\n    const formImages = [\n      \"$FORMVALUE_IMAGE_GALLERY_URL_01\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_02\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_03\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_04\",\n      \"$FORMVALUE_IMAGE_GALLERY_URL_05\"\n    ];\n    let formIndex = 0;\n    const adamImg = document.getElementById(\"$FORMVALUE_IMAGE_GALLERY_ID_01\");\n    \n    if (formImg) {\n      setInterval(function () {\n        // fade out\n        formImg.style.opacity = 0;\n        \n        setTimeout(() => {\n          // change image once faded\n          formIndex = (formIndex + 1) % formImages.length;\n          formImg.src = formImages[formIndex];\n          // fade in\n          formImg.style.opacity = 1;\n        }, 1000); // matches transition duration\n      }, 5000); // switch every 5 seconds\n    }\n  })();\n" + '</' + 'script>' + "<script>\n  // Hide on-page banner and footer\n  document.addEventListener('DOMContentLoaded', function() {\n    // Hide any on-page banner divs\n    const banners = document.querySelectorAll('div[class*=\"banner\"], div[id*=\"banner\"], .banner, #banner');\n    banners.forEach(banner => {\n      if (banner) {\n        banner.style.display = 'none';\n      }\n    });\n    \n    // Hide footer with specific selector\n    const footer = document.querySelector('#aspnetForm > div.site_wrapper > footer');\n    if (footer) {\n      footer.style.display = 'none';\n    }\n    \n    // Also hide any other footer elements as backup\n    const allFooters = document.querySelectorAll('footer');\n    allFooters.forEach(footer => {\n      if (footer && !footer.classList.contains('inner')) {\n        footer.style.display = 'none';\n      }\n    });\n    \n    // Set specific element width to 100%\n    const targetElement = document.querySelector('#main > div.content.clearfix > div > div > div.group_2of3.first');\n    if (targetElement) {\n      targetElement.style.width = '100%';\n    }\n    \n    // Hide and remove sizing from specific elements\n    const firstChild = document.querySelector('#main > div.content.clearfix > div > div > div:nth-child(1)');\n    if (firstChild) {\n      firstChild.style.display = 'none';\n      firstChild.style.width = '0';\n      firstChild.style.height = '0';\n      firstChild.style.margin = '0';\n      firstChild.style.padding = '0';\n    }\n    \n    // Hide navigation\n    const nav = document.querySelector('#main > nav');\n    if (nav) {\n      nav.style.display = 'none';\n    }\n  }); \n" + '</' + 'script>' + "<script>\n(function () {\n  var NEW_NAME = \"ImpactLife\";\n  var OLD_NAME = \"MVRBC\";\n\n  // --- 1) Update JSON-LD (application/ld+json) ---\n  function mutateNames(obj) {\n    if (!obj || typeof obj !== \"object\") return;\n    if (Array.isArray(obj)) {\n      obj.forEach(mutateNames);\n      return;\n    }\n    // Replace exact \"MVRBC\" in common places (and anywhere 'name' equals it)\n    if (typeof obj.name === \"string\" && obj.name.trim() === OLD_NAME) {\n      obj.name = NEW_NAME;\n    }\n    if (obj.author && typeof obj.author === \"object\") {\n      if (typeof obj.author.name === \"string\" && obj.author.name.trim() === OLD_NAME) {\n        obj.author.name = NEW_NAME;\n      }\n    }\n    if (obj.publisher && typeof obj.publisher === \"object\") {\n      if (typeof obj.publisher.name === \"string\" && obj.publisher.name.trim() === OLD_NAME) {\n        obj.publisher.name = NEW_NAME;\n      }\n    }\n    // Recurse through all properties\n    Object.keys(obj).forEach(function (k) {\n      if (obj[k] && typeof obj[k] === \"object\") mutateNames(obj[k]);\n    });\n  }\n\n  Array.prototype.forEach.call(\n    document.querySelectorAll('script[type=\"application/ld+json\"]'),\n    function (node) {\n      try {\n        // Some sites embed minified JSON; keep formatting minimal on write-back\n        var data = JSON.parse(node.textContent.trim());\n        mutateNames(data);\n        node.textContent = JSON.stringify(data);\n      } catch (e) {\n        // Ignore scripts that aren't valid JSON\n      }\n    }\n  );\n\n  // --- 2) (Optional) Replace visible text \"MVRBC\" with \"ImpactLife\" ---\n  // Comment out this block if you only want the JSON-LD change.\n  (function replaceVisibleText() {\n    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {\n      acceptNode: function (n) {\n        // Skip empty/whitespace text nodes\n        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;\n        // Skip text under these elements\n        var p = n.parentNode;\n        while (p) {\n          var tag = (p.tagName || \"\").toLowerCase();\n          if (tag === \"script\" || tag === \"style\" || tag === \"noscript\" || tag === \"textarea\") {\n            return NodeFilter.FILTER_REJECT;\n          }\n          p = p.parentNode;\n        }\n        return NodeFilter.FILTER_ACCEPT;\n      }\n    });\n\n    var re = new RegExp(\"\\\\b\" + OLD_NAME.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\") + \"\\\\b\", \"g\");\n    var node;\n    while ((node = walker.nextNode())) {\n      if (re.test(node.nodeValue)) {\n        node.nodeValue = node.nodeValue.replace(re, NEW_NAME);\n      }\n    }\n   })();\n })();\n " + '</' + 'script>' + "<script>\n // Override schema.org data for social media previews\n (function() {\n   // Update any existing JSON-LD schema\n   const jsonLdScripts = document.querySelectorAll('script[type=\"application/ld+json\"]');\n   jsonLdScripts.forEach(script => {\n     try {\n       const data = JSON.parse(script.textContent);\n       if (data.publisher && data.publisher.name === 'MVRBC') {\n         data.publisher.name = 'ImpactLife';\n       }\n       if (data.author && data.author.name === 'MVRBC') {\n         data.author.name = 'ImpactLife';\n       }\n       if (data.name && data.name.includes('MVRBC')) {\n         data.name = data.name.replace(/MVRBC/g, 'ImpactLife');\n       }\n       script.textContent = JSON.stringify(data);\n     } catch (e) {\n       // Ignore invalid JSON\n     }\n   });\n   \n   // Add new schema to override any global schema\n   const newSchema = {\n     \"@context\": \"https://schema.org\",\n     \"@type\": \"Article\",\n     \"headline\": \"Feel-Good News - ImpactLife\",\n     \"description\": \"Stay updated with the latest feel-good news from ImpactLife. Read inspiring stories about blood donation, community impact, and life-saving moments.\",\n     \"publisher\": {\n       \"@type\": \"Organization\",\n       \"name\": \"ImpactLife\",\n       \"url\": \"https://www.bloodcenter.org\"\n     },\n     \"author\": {\n       \"@type\": \"Organization\", \n       \"name\": \"ImpactLife\"\n     },\n     \"datePublished\": \"$SCHEMA_DATE_PUBLISHED\",\n     \"dateModified\": \"$SCHEMA_DATE_MODIFIED\"\n   };\n   \n   const schemaScript = document.createElement('script');\n   schemaScript.type = 'application/ld+json';\n   schemaScript.textContent = JSON.stringify(newSchema);\n   document.head.appendChild(schemaScript);\n })();\n " + '</' + 'script>' + "";
             templateContent = templateString;
         }
 
@@ -467,6 +481,15 @@
                 addArticleBtn.title = 'Please set a publication date first';
             }
             
+            // Disable Add In the News button
+            const addInTheNewsBtn = document.getElementById('addInTheNewsBtn');
+            if (addInTheNewsBtn) {
+                addInTheNewsBtn.disabled = true;
+                addInTheNewsBtn.style.opacity = '0.5';
+                addInTheNewsBtn.style.cursor = 'not-allowed';
+                addInTheNewsBtn.title = 'Please set a publication date first';
+            }
+            
             // Disable Add Thank the Donor button
             const addThankDonorBtn = document.getElementById('addThankDonorBtn');
             if (addThankDonorBtn) {
@@ -509,6 +532,15 @@
                 addArticleBtn.style.opacity = '1';
                 addArticleBtn.style.cursor = 'pointer';
                 addArticleBtn.title = '';
+            }
+            
+            // Enable Add In the News button
+            const addInTheNewsBtn = document.getElementById('addInTheNewsBtn');
+            if (addInTheNewsBtn) {
+                addInTheNewsBtn.disabled = false;
+                addInTheNewsBtn.style.opacity = '1';
+                addInTheNewsBtn.style.cursor = 'pointer';
+                addInTheNewsBtn.title = '';
             }
             
             // Enable Add Thank the Donor button
@@ -606,6 +638,324 @@
             updateOutputRealTime();
         }
 
+        function addInTheNews() {
+            // Check if publication date is set
+            const dateInput = document.getElementById('publicationDate');
+            if (!dateInput || !dateInput.value || !dateInput.value.trim()) {
+                alert('Please set a publication date before adding In the News section.');
+                dateInput.focus();
+                return;
+            }
+            
+            inTheNewsEnabled = true;
+            inTheNewsCollapsed = false; // Expand when first added
+            document.getElementById('addInTheNewsBtn').style.display = 'none';
+            renderInTheNews();
+            updateOutputRealTime();
+            
+            // Scroll to the "In the News" section
+            setTimeout(function() {
+                const section = document.getElementById('in-the-news-section');
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        }
+
+        function removeInTheNews() {
+            inTheNewsEnabled = false;
+            inTheNewsLinks = [];
+            const section = document.getElementById('in-the-news-section');
+            if (section) {
+                section.remove();
+            }
+            document.getElementById('addInTheNewsBtn').style.display = 'inline-block';
+            updateOutputRealTime();
+        }
+
+        function addInTheNewsLink() {
+            if (!inTheNewsEnabled) {
+                addInTheNews();
+            }
+            
+            // Add link at the beginning of the array so it appears at the top
+            inTheNewsLinks.unshift({
+                url: '',
+                title: '',
+                imageUrl: '',
+                description: '',
+                fetched: false
+            });
+            
+            renderInTheNews();
+            
+            // Scroll to the "In the News" section and expand it
+            inTheNewsCollapsed = false;
+            renderInTheNews();
+            
+            setTimeout(function() {
+                const section = document.getElementById('in-the-news-section');
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Focus on the first input field (the new link at the top)
+                    const firstInput = section.querySelector('input[type="text"]');
+                    if (firstInput) {
+                        setTimeout(function() {
+                            firstInput.focus();
+                        }, 300);
+                    }
+                }
+            }, 100);
+        }
+
+        function removeInTheNewsLink(index) {
+            inTheNewsLinks.splice(index, 1);
+            renderInTheNews();
+            updateOutputRealTime();
+        }
+
+        function updateInTheNewsLink(index, url) {
+            inTheNewsLinks[index].url = url;
+            
+            // Fetch metadata if URL is provided
+            if (url && url.trim()) {
+                fetchArticleMetadata(index, url.trim());
+            } else {
+                inTheNewsLinks[index].title = '';
+                inTheNewsLinks[index].imageUrl = '';
+                inTheNewsLinks[index].description = '';
+                inTheNewsLinks[index].fetched = false;
+            }
+            
+            renderInTheNews();
+            updateOutputRealTime();
+        }
+
+        function updateInTheNewsTitle(index, title) {
+            inTheNewsLinks[index].title = title;
+            updateOutputRealTime();
+        }
+
+        function updateInTheNewsImage(index, imageUrl) {
+            inTheNewsLinks[index].imageUrl = imageUrl;
+            renderInTheNews();
+            updateOutputRealTime();
+        }
+
+        async function fetchArticleMetadata(index, url) {
+            // Mark as fetching
+            inTheNewsLinks[index].fetched = false;
+            renderInTheNews();
+            
+            try {
+                // Use CORS proxy to fetch article metadata (same approach as social share previews)
+                // Try multiple CORS proxy services for reliability
+                const corsProxies = [
+                    'https://api.allorigins.win/raw?url=',
+                    'https://corsproxy.io/?',
+                    'https://api.codetabs.com/v1/proxy?quest='
+                ];
+                
+                let html = null;
+                let lastError = null;
+                
+                // Try each proxy until one works
+                for (const proxy of corsProxies) {
+                    try {
+                        const proxyUrl = proxy + encodeURIComponent(url);
+                        const response = await fetch(proxyUrl, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                            }
+                        });
+                        
+                        if (response && response.ok) {
+                            html = await response.text();
+                            break; // Success, exit loop
+                        }
+                    } catch (err) {
+                        lastError = err;
+                        continue; // Try next proxy
+                    }
+                }
+                
+                if (html) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Extract title (same priority as social previews)
+                    const ogTitle = doc.querySelector('meta[property="og:title"]')?.getAttribute('content');
+                    const twitterTitle = doc.querySelector('meta[name="twitter:title"]')?.getAttribute('content');
+                    const pageTitle = doc.querySelector('title')?.textContent;
+                    
+                    // Prefer Open Graph title, then Twitter title, then clean up page title
+                    let title = '';
+                    if (ogTitle && ogTitle.trim()) {
+                        title = ogTitle.trim();
+                    } else if (twitterTitle && twitterTitle.trim()) {
+                        title = twitterTitle.trim();
+                    } else if (pageTitle && pageTitle.trim()) {
+                        // Clean up page title - remove site name suffixes
+                        title = pageTitle.trim();
+                        // Remove common separators and site names
+                        title = title.split('|')[0].trim();
+                        title = title.split(' - ')[0].trim();
+                        title = title.split(' – ')[0].trim();
+                        title = title.split(' — ')[0].trim();
+                        // Remove trailing site name patterns
+                        title = title.replace(/\s*-\s*KWQC.*$/i, '').trim();
+                        title = title.replace(/\s*-\s*News.*$/i, '').trim();
+                    }
+                    
+                    // Extract image (same priority as social previews)
+                    const ogImage = doc.querySelector('meta[property="og:image"]')?.getAttribute('content');
+                    const twitterImage = doc.querySelector('meta[name="twitter:image"]')?.getAttribute('content');
+                    const twitterImageSrc = doc.querySelector('meta[name="twitter:image:src"]')?.getAttribute('content');
+                    let imageUrl = (ogImage || twitterImage || twitterImageSrc || '').trim();
+                    
+                    // Convert relative image URLs to absolute
+                    if (imageUrl && !imageUrl.startsWith('http')) {
+                        try {
+                            const urlObj = new URL(url);
+                            if (imageUrl.startsWith('//')) {
+                                imageUrl = urlObj.protocol + imageUrl;
+                            } else if (imageUrl.startsWith('/')) {
+                                imageUrl = urlObj.origin + imageUrl;
+                            } else {
+                                imageUrl = urlObj.origin + '/' + imageUrl;
+                            }
+                        } catch (e) {
+                            // If URL parsing fails, keep original
+                        }
+                    }
+                    
+                    // Extract description (for potential future use)
+                    const ogDescription = doc.querySelector('meta[property="og:description"]')?.getAttribute('content');
+                    const twitterDescription = doc.querySelector('meta[name="twitter:description"]')?.getAttribute('content');
+                    const metaDescription = doc.querySelector('meta[name="description"]')?.getAttribute('content');
+                    const description = (ogDescription || twitterDescription || metaDescription || '').trim();
+                    
+                    inTheNewsLinks[index].title = title;
+                    inTheNewsLinks[index].imageUrl = imageUrl;
+                    inTheNewsLinks[index].description = description;
+                    inTheNewsLinks[index].fetched = true;
+                } else {
+                    // All proxies failed - show error message
+                    console.error('Error fetching article metadata:', lastError);
+                    try {
+                        const urlObj = new URL(url);
+                        inTheNewsLinks[index].title = urlObj.hostname.replace('www.', '');
+                    } catch (e) {
+                        inTheNewsLinks[index].title = url;
+                    }
+                    inTheNewsLinks[index].imageUrl = '';
+                    inTheNewsLinks[index].description = '';
+                    inTheNewsLinks[index].fetched = true;
+                    
+                    // Show alert to user
+                    alert('Unable to automatically fetch article metadata due to CORS restrictions. Please manually enter the title and image URL. You can find this information by visiting the article URL and checking the page source or using a tool like socialsharepreview.com');
+                }
+            } catch (error) {
+                console.error('Error fetching article metadata:', error);
+                // Fallback: use URL domain as title
+                try {
+                    const urlObj = new URL(url);
+                    inTheNewsLinks[index].title = urlObj.hostname.replace('www.', '');
+                } catch (e) {
+                    inTheNewsLinks[index].title = url;
+                }
+                inTheNewsLinks[index].imageUrl = '';
+                inTheNewsLinks[index].description = '';
+                inTheNewsLinks[index].fetched = true;
+                
+                alert('Error fetching article metadata. Please manually enter the title and image URL.');
+            }
+            
+            renderInTheNews();
+            updateOutputRealTime();
+        }
+
+        function renderInTheNews() {
+            const container = document.getElementById('inTheNewsContainer');
+            if (!container) {
+                console.error('inTheNewsContainer not found!');
+                return;
+            }
+            
+            if (!inTheNewsEnabled) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            container.innerHTML = '';
+            
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'article-group' + (inTheNewsCollapsed ? ' collapsed' : '');
+            sectionDiv.id = 'in-the-news-section';
+            
+            let html = '';
+            html += '<div class="article-header" onclick="toggleInTheNews()">';
+            html += '<div class="article-header-left">';
+            html += '<span class="article-toggle">' + (inTheNewsCollapsed ? '►' : '▼') + '</span>';
+            html += '<span class="article-number">In the News</span>';
+            html += '</div>';
+            html += '<div class="article-actions" onclick="event.stopPropagation()">';
+            html += '<button type="button" class="btn btn-danger btn-small" onclick="removeInTheNews()">Remove Section</button>';
+            html += '</div></div>';
+            html += '<div class="article-content">';
+            html += '<div class="form-group">';
+            html += '<label>Article Links</label>';
+            html += '<p style="font-size: 14px; color: #666; margin-bottom: 12px;">Add links to news articles. The title and image will be automatically fetched from the article.</p>';
+            html += '<button type="button" class="btn btn-secondary btn-small" onclick="addInTheNewsLink()" style="margin-bottom: 16px;">+ Add Article Link</button>';
+            html += '</div>';
+            
+            inTheNewsLinks.forEach((link, index) => {
+                html += '<div class="gallery-item" style="margin-bottom: 16px; padding: 12px; background: #f6f7f9; border-radius: 8px; border: 1px solid #e0e0e0;">';
+                html += '<div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px;">';
+                html += '<input type="text" id="in-the-news-link-' + index + '" value="' + escapeHtml(link.url) + '" oninput="updateInTheNewsLink(' + index + ', this.value)" placeholder="Enter article URL (e.g., https://example.com/article)" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">';
+                html += '<button type="button" class="btn btn-danger btn-small" onclick="removeInTheNewsLink(' + index + ')">Remove</button>';
+                html += '</div>';
+                
+                // Show fetching status
+                if (link.url && link.url.trim() && !link.fetched && !link.title) {
+                    html += '<div style="margin-bottom: 12px; padding: 8px; background: #fff3cd; border-radius: 4px; color: #856404; font-size: 14px;">';
+                    html += 'Fetching article information...';
+                    html += '</div>';
+                }
+                
+                // Always show title and image fields (can be manually edited)
+                html += '<div style="margin-top: 12px;">';
+                html += '<label style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 14px;">Title: <span style="font-weight: normal; color: #666; font-size: 12px;">(auto-filled from URL, or enter manually)</span></label>';
+                html += '<input type="text" id="in-the-news-title-' + index + '" value="' + escapeHtml(link.title || '') + '" oninput="updateInTheNewsTitle(' + index + ', this.value)" placeholder="Article title will be fetched automatically, or enter manually" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px;">';
+                html += '</div>';
+                
+                html += '<div style="margin-top: 8px;">';
+                html += '<label style="display: block; margin-bottom: 4px; font-weight: 600; font-size: 14px;">Image URL: <span style="font-weight: normal; color: #666; font-size: 12px;">(auto-filled from URL, or enter manually)</span></label>';
+                html += '<input type="text" id="in-the-news-image-' + index + '" value="' + escapeHtml(link.imageUrl || '') + '" oninput="updateInTheNewsImage(' + index + ', this.value)" placeholder="Image URL will be fetched automatically, or enter manually" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px;">';
+                if (link.imageUrl) {
+                    html += '<img src="' + escapeHtml(link.imageUrl) + '" style="max-width: 200px; max-height: 150px; border-radius: 4px; border: 1px solid #ddd; margin-top: 8px; display: block;" onerror="this.style.display=\'none\'" />';
+                }
+                html += '</div>';
+                
+                // Add helper text about using socialsharepreview.com
+                if (link.url && link.url.trim() && (!link.title || !link.imageUrl)) {
+                    html += '<div style="margin-top: 8px; padding: 8px; background: #e7f3ff; border-radius: 4px; font-size: 13px; color: #0c2a4a;">';
+                    html += '<strong>Tip:</strong> If auto-fetch doesn\'t work, you can get the title and image from <a href="https://socialsharepreview.com/?url=' + encodeURIComponent(link.url) + '" target="_blank" style="color: #0c2a4a; text-decoration: underline;">socialsharepreview.com</a> and paste them manually.';
+                    html += '</div>';
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            html += '</div>';
+            
+            sectionDiv.innerHTML = html;
+            container.appendChild(sectionDiv);
+        }
+
         function renderThankDonor() {
             const container = document.getElementById('articlesContainer');
             if (!container) return;
@@ -685,6 +1035,26 @@
                 const toggleIcon = section.querySelector('.article-toggle');
                 
                 if (employeeSpotlightCollapsed) {
+                    section.classList.add('collapsed');
+                    if (toggleIcon) {
+                        toggleIcon.textContent = '►';
+                    }
+                } else {
+                    section.classList.remove('collapsed');
+                    if (toggleIcon) {
+                        toggleIcon.textContent = '▼';
+                    }
+                }
+            }
+        }
+
+        function toggleInTheNews() {
+            inTheNewsCollapsed = !inTheNewsCollapsed;
+            const section = document.getElementById('in-the-news-section');
+            if (section) {
+                const toggleIcon = section.querySelector('.article-toggle');
+                
+                if (inTheNewsCollapsed) {
                     section.classList.add('collapsed');
                     if (toggleIcon) {
                         toggleIcon.textContent = '►';
@@ -951,12 +1321,18 @@
                     collapsed: false, // Track accordion state
                     galleryCollapsed: false // Track gallery section collapsed state
                 };
-                articles.push(article);
+                // Add article at the beginning of the array so it appears at the top
+                articles.unshift(article);
                 console.log('Article added, total articles:', articles.length);
 
                 renderArticles();
                 setupDragDrop();
                 updateOutputRealTime(); // Real-time update after adding article
+                
+                // Scroll to top to show the new article
+                setTimeout(function() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
             } catch (error) {
                 console.error('Error adding article:', error);
                 alert('Error adding article: ' + error.message);
@@ -1146,14 +1522,13 @@
 
             articles.forEach((article, index) => {
                 const articleDiv = document.createElement('div');
-                articleDiv.className = 'article-group';
-                articleDiv.id = article.id;
-                articleDiv.draggable = true;
-                
                 // Initialize collapsed property if it doesn't exist
                 if (typeof article.collapsed === 'undefined') {
                     article.collapsed = false;
                 }
+                articleDiv.className = 'article-group' + (article.collapsed ? ' collapsed' : '');
+                articleDiv.id = article.id;
+                articleDiv.draggable = true;
 
                 const order = index + 1;
 
@@ -1189,7 +1564,7 @@
                 var html = '';
                 html += '<div class="article-header" onclick="toggleArticle(' + index + ')">';
                 html += '<div class="article-header-left">';
-                html += '<span class="article-toggle">▼</span>';
+                html += '<span class="article-toggle">' + (article.collapsed ? '►' : '▼') + '</span>';
                 // Use article title if available, otherwise fall back to "Article X"
                 const headerText = article.title && article.title.trim() ? escapeHtml(article.title.trim()) : 'Article ' + order;
                 html += '<span class="article-number" id="article-number-' + article.id + '">' + headerText + '</span>';
@@ -1231,11 +1606,6 @@
                 html += '</div>'; // Close article-content
                 
                 articleDiv.innerHTML = html;
-                
-                // Set collapsed state
-                if (article.collapsed) {
-                    articleDiv.classList.add('collapsed');
-                }
 
                 container.appendChild(articleDiv);
             });
@@ -2138,7 +2508,7 @@
                     mediaHtml = '<div class="media ' + mediaClass + '">\n        ' + mediaContent + '\n      </div>';
                 }
                 
-                const articleHtml = '\n    <!-- Story ' + articleNumber + ' -->\n    <article class="card masonry-item" style="order: ' + order + ';">\n      <h2>' + escapeHtml(article.title) + '</h2>\n      <p>' + bodyContent + '</p>\n      ' + mediaHtml + '\n    </article>';
+                const articleHtml = '\n    <!-- Story ' + articleNumber + ' -->\n    <article class="card masonry-item" style="order: ' + order + ';">\n      <h2 style="padding: 4px 8px; line-height: 1.3; min-height: 2.6em;">' + escapeHtml(article.title) + '</h2>\n      <p>' + bodyContent + '</p>\n      ' + mediaHtml + '\n    </article>';
 
                 allArticles.push(articleHtml);
             });
@@ -2150,6 +2520,250 @@
             const newMainGrid = '<div class="main-grid">\n' + allArticlesHtml + '\n</div>';
 
             output = output.replace(mainGridRegex, newMainGrid);
+            
+            // Store "In the News" HTML for insertion after Employee Spotlight processing
+            let inTheNewsHtmlToInsert = null;
+            let inTheNewsGalleryScript = null;
+            
+            // Prepare "In the News" section if enabled (but don't insert yet)
+            if (inTheNewsEnabled && inTheNewsLinks.length > 0 && inTheNewsLinks.some(link => link.url && link.url.trim())) {
+                // Include links that have a URL and either have been fetched or have a manually entered title
+                const validLinks = inTheNewsLinks.filter(link => link.url && link.url.trim() && (link.fetched || link.title));
+                
+                if (validLinks.length > 0) {
+                    // Create gallery container
+                    const galleryId = 'in-the-news-gallery';
+                    const jsSafeId = galleryId.replace(/-/g, '_');
+                    
+                    // Build arrays for gallery script
+                    const articleUrls = validLinks.map(link => '"' + escapeHtml(link.url) + '"').join(',\n      ');
+                    const articleTitles = validLinks.map(link => '"' + escapeHtml(link.title || '') + '"').join(',\n      ');
+                    const articleImages = validLinks.map(link => '"' + escapeHtml(link.imageUrl || '') + '"').join(',\n      ');
+                    
+                    // Create the "In the News" section HTML with red styling
+                    // Always show arrows (they'll be hidden via JavaScript if only one article)
+                    const leftArrowStyle = 'position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.9); color: #e5253a; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; opacity: 0.8; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+                    const rightArrowStyle = 'position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.9); color: #e5253a; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; opacity: 0.8; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+                    
+                    // Create indicator bubbles HTML
+                    let bubblesHtml = '';
+                    if (validLinks.length > 1) {
+                        bubblesHtml = '<div id="in-the-news-indicators-' + galleryId + '" style="display: flex; justify-content: center; gap: 8px; margin-top: 20px; padding-top: 16px;">';
+                        for (let i = 0; i < validLinks.length; i++) {
+                            const isActive = i === 0 ? 'active' : '';
+                            bubblesHtml += '<button type="button" class="in-the-news-indicator" data-index="' + i + '" id="in-the-news-indicator-' + galleryId + '-' + i + '" aria-label="Go to story ' + (i + 1) + '" style="width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.5); background: ' + (i === 0 ? 'rgba(255, 255, 255, 1)' : 'transparent') + '; cursor: pointer; transition: all 0.3s ease; padding: 0; outline: none;"></button>';
+                        }
+                        bubblesHtml += '</div>';
+                    }
+                    
+                    const inTheNewsHtml = '\n<!-- In the News -->\n<section class="in-the-news-section masonry-item" style="column-span: all; -webkit-column-span: all; background: #e5253a; color: #fff; border-radius: var(--radius); padding: 22px 20px; box-shadow: 0 2px 10px rgba(229,37,58,.15); margin-top: var(--gap); width: 100%; break-inside: avoid; position: relative; overflow: hidden;">\n  <h2 style="color: #fff; font-family: \'Roboto Condensed\', Helvetica, sans-serif; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; font-size: 28px;">IN THE NEWS</h2>\n  <div class="in-the-news-gallery-container" id="gallery-container-' + galleryId + '" style="position: relative; display: inline-block; width: 100%;">\n    <button type="button" class="gallery-arrow gallery-arrow-left" id="gallery-arrow-left-' + galleryId + '" aria-label="Previous article" style="' + leftArrowStyle + '">‹</button>\n    <div id="in-the-news-content-' + galleryId + '" style="min-height: 200px;">\n      <h3 id="in-the-news-title-' + galleryId + '" style="color: #fff; font-family: \'Roboto Condensed\', Helvetica, sans-serif; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; font-size: 20px;"></h3>\n      <a id="in-the-news-link-' + galleryId + '" href="#" target="_blank" style="color: #fff; text-decoration: underline; display: inline-block; margin-bottom: 12px;">Read Article →</a>\n      <div id="in-the-news-image-container-' + galleryId + '" style="margin-top: 12px; text-align: center; width: 360px; height: 240px; margin-left: auto; margin-right: auto; overflow: hidden; border-radius: 14px; display: flex; align-items: center; justify-content: center;"></div>\n    </div>\n    <button type="button" class="gallery-arrow gallery-arrow-right" id="gallery-arrow-right-' + galleryId + '" aria-label="Next article" style="' + rightArrowStyle + '">›</button>\n  </div>\n  ' + bubblesHtml + '\n</section>\n';
+                    
+                    // Build gallery script for "In the News" (store it, don't insert yet)
+                    const scriptParts = [
+                        'document.addEventListener("DOMContentLoaded", function() {',
+                        '    // In the News Gallery',
+                        '    const inTheNewsUrls_' + jsSafeId + ' = [',
+                        '      ' + articleUrls,
+                        '    ];',
+                        '    const inTheNewsTitles_' + jsSafeId + ' = [',
+                        '      ' + articleTitles,
+                        '    ];',
+                        '    const inTheNewsImages_' + jsSafeId + ' = [',
+                        '      ' + articleImages,
+                        '    ];',
+                        '    let inTheNewsIndex_' + jsSafeId + ' = 0;',
+                        '    let inTheNewsAutoPlayInterval_' + jsSafeId + ' = null;',
+                        '    ',
+                        '    function updateInTheNewsContent_' + jsSafeId + '() {',
+                        '      const titleEl = document.getElementById("in-the-news-title-' + galleryId + '");',
+                        '      const linkEl = document.getElementById("in-the-news-link-' + galleryId + '");',
+                        '      const imageContainer = document.getElementById("in-the-news-image-container-' + galleryId + '");',
+                        '      ',
+                        '      if (titleEl && inTheNewsTitles_' + jsSafeId + '[inTheNewsIndex_' + jsSafeId + ']) {',
+                        '        titleEl.textContent = inTheNewsTitles_' + jsSafeId + '[inTheNewsIndex_' + jsSafeId + '];',
+                        '      }',
+                        '      ',
+                        '      if (linkEl && inTheNewsUrls_' + jsSafeId + '[inTheNewsIndex_' + jsSafeId + ']) {',
+                        '        linkEl.href = inTheNewsUrls_' + jsSafeId + '[inTheNewsIndex_' + jsSafeId + '];',
+                        '      }',
+                        '      ',
+                        '      if (imageContainer) {',
+                        '        if (inTheNewsImages_' + jsSafeId + '[inTheNewsIndex_' + jsSafeId + '] && inTheNewsImages_' + jsSafeId + '[inTheNewsIndex_' + jsSafeId + '].trim()) {',
+                            '          imageContainer.innerHTML = \'<img src="\' + inTheNewsImages_' + jsSafeId + '[inTheNewsIndex_' + jsSafeId + '] + \'" style="width: 100%; height: 100%; object-fit: contain; border-radius: 14px; display: block;" alt="\' + (inTheNewsTitles_' + jsSafeId + '[inTheNewsIndex_' + jsSafeId + '] || "Article image") + \'" />\';',
+                        '        } else {',
+                        '          imageContainer.innerHTML = "";',
+                        '        }',
+                        '      }',
+                        '      ',
+                        '      // Update indicator bubbles',
+                        '      const indicatorsContainer = document.getElementById("in-the-news-indicators-' + galleryId + '");',
+                        '      if (indicatorsContainer) {',
+                        '        const indicators = indicatorsContainer.querySelectorAll(".in-the-news-indicator");',
+                        '        indicators.forEach(function(indicator, index) {',
+                        '          if (index === inTheNewsIndex_' + jsSafeId + ') {',
+                        '            indicator.style.background = "rgba(255, 255, 255, 1)";',
+                        '            indicator.style.borderColor = "rgba(255, 255, 255, 1)";',
+                        '            indicator.style.transform = "scale(1.2)";',
+                        '          } else {',
+                        '            indicator.style.background = "transparent";',
+                        '            indicator.style.borderColor = "rgba(255, 255, 255, 0.5)";',
+                        '            indicator.style.transform = "scale(1)";',
+                        '          }',
+                        '        });',
+                        '      }',
+                        '    }',
+                        '    ',
+                        '    function changeInTheNewsArticle_' + jsSafeId + '(direction) {',
+                        '      if (inTheNewsUrls_' + jsSafeId + '.length === 0) return;',
+                        '      ',
+                        '      if (direction === "next") {',
+                        '        inTheNewsIndex_' + jsSafeId + ' = (inTheNewsIndex_' + jsSafeId + ' + 1) % inTheNewsUrls_' + jsSafeId + '.length;',
+                        '      } else if (direction === "prev") {',
+                        '        inTheNewsIndex_' + jsSafeId + ' = (inTheNewsIndex_' + jsSafeId + ' - 1 + inTheNewsUrls_' + jsSafeId + '.length) % inTheNewsUrls_' + jsSafeId + '.length;',
+                        '      }',
+                        '      ',
+                        '      const contentEl = document.getElementById("in-the-news-content-' + galleryId + '");',
+                        '      if (contentEl) {',
+                        '        contentEl.style.opacity = 0;',
+                        '        contentEl.style.transition = "opacity 0.5s ease";',
+                        '        setTimeout(function() {',
+                        '          updateInTheNewsContent_' + jsSafeId + '();',
+                        '          contentEl.style.opacity = 1;',
+                        '        }, 250);',
+                        '      } else {',
+                        '        updateInTheNewsContent_' + jsSafeId + '();',
+                        '      }',
+                        '    }',
+                        '    ',
+                        '    function startInTheNewsAutoPlay_' + jsSafeId + '() {',
+                        '      if (inTheNewsAutoPlayInterval_' + jsSafeId + ') {',
+                        '        clearInterval(inTheNewsAutoPlayInterval_' + jsSafeId + ');',
+                        '      }',
+                        '      inTheNewsAutoPlayInterval_' + jsSafeId + ' = setInterval(function() {',
+                        '        changeInTheNewsArticle_' + jsSafeId + '("next");',
+                        '      }, 5000);',
+                        '    }',
+                        '    ',
+                        '    function pauseInTheNewsAutoPlay_' + jsSafeId + '() {',
+                        '      if (inTheNewsAutoPlayInterval_' + jsSafeId + ') {',
+                        '        clearInterval(inTheNewsAutoPlayInterval_' + jsSafeId + ');',
+                        '        inTheNewsAutoPlayInterval_' + jsSafeId + ' = null;',
+                        '      }',
+                        '    }',
+                        '    ',
+                        '    function initInTheNewsGallery_' + jsSafeId + '() {',
+                        '      const leftArrow = document.getElementById("gallery-arrow-left-' + galleryId + '");',
+                        '      const rightArrow = document.getElementById("gallery-arrow-right-' + galleryId + '");',
+                        '      const galleryContainer = document.getElementById("gallery-container-' + galleryId + '");',
+                        '      const indicatorsContainer = document.getElementById("in-the-news-indicators-' + galleryId + '");',
+                        '      ',
+                        '      updateInTheNewsContent_' + jsSafeId + '();',
+                        '      ',
+                        '      // Hide arrows if there\'s only one article',
+                        '      if (inTheNewsUrls_' + jsSafeId + '.length <= 1) {',
+                        '        if (leftArrow) leftArrow.style.display = "none";',
+                        '        if (rightArrow) rightArrow.style.display = "none";',
+                        '      }',
+                        '      ',
+                        '      // Add click handlers to indicator bubbles',
+                        '      if (indicatorsContainer) {',
+                        '        const indicators = indicatorsContainer.querySelectorAll(".in-the-news-indicator");',
+                        '        indicators.forEach(function(indicator, index) {',
+                        '          indicator.addEventListener("click", function(e) {',
+                        '            e.preventDefault();',
+                        '            e.stopPropagation();',
+                        '            inTheNewsIndex_' + jsSafeId + ' = index;',
+                        '            const contentEl = document.getElementById("in-the-news-content-' + galleryId + '");',
+                        '            if (contentEl) {',
+                        '              contentEl.style.opacity = 0;',
+                        '              contentEl.style.transition = "opacity 0.5s ease";',
+                        '              setTimeout(function() {',
+                        '                updateInTheNewsContent_' + jsSafeId + '();',
+                        '                contentEl.style.opacity = 1;',
+                        '              }, 250);',
+                        '            } else {',
+                        '              updateInTheNewsContent_' + jsSafeId + '();',
+                        '            }',
+                        '            startInTheNewsAutoPlay_' + jsSafeId + '();',
+                        '          });',
+                        '          indicator.addEventListener("mouseenter", function() {',
+                        '            if (this.style.background !== "rgba(255, 255, 255, 1)") {',
+                        '              this.style.borderColor = "rgba(255, 255, 255, 0.8)";',
+                        '            }',
+                        '          });',
+                        '          indicator.addEventListener("mouseleave", function() {',
+                        '            if (this.style.background !== "rgba(255, 255, 255, 1)") {',
+                        '              this.style.borderColor = "rgba(255, 255, 255, 0.5)";',
+                        '            }',
+                        '          });',
+                        '        });',
+                        '      }',
+                        '      ',
+                        '      if (leftArrow) {',
+                        '        leftArrow.addEventListener("click", function(e) {',
+                        '          e.preventDefault();',
+                        '          e.stopPropagation();',
+                        '          changeInTheNewsArticle_' + jsSafeId + '("prev");',
+                        '          startInTheNewsAutoPlay_' + jsSafeId + '();',
+                        '        });',
+                        '        leftArrow.addEventListener("mouseenter", function() {',
+                        '          this.style.background = "rgba(255, 255, 255, 1)";',
+                        '          this.style.transform = "translateY(-50%) scale(1.1)";',
+                        '        });',
+                        '        leftArrow.addEventListener("mouseleave", function() {',
+                        '          this.style.background = "rgba(255, 255, 255, 0.9)";',
+                        '          this.style.transform = "translateY(-50%) scale(1)";',
+                        '        });',
+                        '      }',
+                        '      ',
+                        '      if (rightArrow) {',
+                        '        rightArrow.addEventListener("click", function(e) {',
+                        '          e.preventDefault();',
+                        '          e.stopPropagation();',
+                        '          changeInTheNewsArticle_' + jsSafeId + '("next");',
+                        '          startInTheNewsAutoPlay_' + jsSafeId + '();',
+                        '        });',
+                        '        rightArrow.addEventListener("mouseenter", function() {',
+                        '          this.style.background = "rgba(255, 255, 255, 1)";',
+                        '          this.style.transform = "translateY(-50%) scale(1.1)";',
+                        '        });',
+                        '        rightArrow.addEventListener("mouseleave", function() {',
+                        '          this.style.background = "rgba(255, 255, 255, 0.9)";',
+                        '          this.style.transform = "translateY(-50%) scale(1)";',
+                        '        });',
+                        '      }',
+                        '      ',
+                        '      if (galleryContainer) {',
+                        '        galleryContainer.addEventListener("mouseenter", function() {',
+                        '          pauseInTheNewsAutoPlay_' + jsSafeId + '();',
+                        '          if (leftArrow && leftArrow.style.display !== "none") leftArrow.style.opacity = "1";',
+                        '          if (rightArrow && rightArrow.style.display !== "none") rightArrow.style.opacity = "1";',
+                        '        });',
+                        '        galleryContainer.addEventListener("mouseleave", function() {',
+                        '          startInTheNewsAutoPlay_' + jsSafeId + '();',
+                        '          if (leftArrow && leftArrow.style.display !== "none") leftArrow.style.opacity = "0.8";',
+                        '          if (rightArrow && rightArrow.style.display !== "none") rightArrow.style.opacity = "0.8";',
+                        '        });',
+                        '      }',
+                        '      ',
+                        '      if (inTheNewsUrls_' + jsSafeId + '.length > 1) {',
+                        '        startInTheNewsAutoPlay_' + jsSafeId + '();',
+                        '      }',
+                        '    }',
+                        '    ',
+                        '    initInTheNewsGallery_' + jsSafeId + '();',
+                        '  });'
+                    ];
+                    
+                    const scriptTagOpen = '<' + 'script>';
+                    const scriptTagClose = '</' + 'script>';
+                    const galleryScript = scriptTagOpen + '\n  ' + scriptParts.join('\n') + '\n' + scriptTagClose + '\n';
+                    
+                    // Store the HTML and script for later insertion
+                    inTheNewsHtmlToInsert = inTheNewsHtml;
+                    inTheNewsGalleryScript = galleryScript;
+                }
+            }
 
             // Add Thank the Donor section and wrap with Employee Spotlight if enabled
             if (thankTheDonor.enabled && thankTheDonor.title && thankTheDonor.title.trim()) {
@@ -2269,6 +2883,55 @@
                             const beforeMainGridClose = output.substring(0, mainGridCloseIndex);
                             const afterMainGridClose = output.substring(mainGridCloseIndex);
                             output = beforeMainGridClose + fullWidthSpotlight + afterMainGridClose;
+                        }
+                    }
+                }
+            }
+            
+            // Now insert "In the News" section before Employee Spotlight (after Employee Spotlight processing is complete)
+            if (inTheNewsHtmlToInsert) {
+                // Find Employee Spotlight section and insert "In the News" before it
+                // Employee Spotlight can be in a side-by-side container or standalone
+                const employeeSpotlightPattern = /(<!-- Employee Spotlight -->)/;
+                const sideBySidePattern = /(<!-- Side-by-Side Container for Thank the Donor and Employee Spotlight -->)/;
+                
+                if (sideBySidePattern.test(output)) {
+                    // Insert before side-by-side container (which contains Employee Spotlight)
+                    output = output.replace(sideBySidePattern, inTheNewsHtmlToInsert + '\n$1');
+                } else if (employeeSpotlightPattern.test(output)) {
+                    // Insert before standalone Employee Spotlight
+                    output = output.replace(employeeSpotlightPattern, inTheNewsHtmlToInsert + '\n$1');
+                } else {
+                    // Fallback: insert inside main-grid, before it closes
+                    const mainGridClosePattern = /(<\/div>\s*)(<!-- Footer -->)/;
+                    if (mainGridClosePattern.test(output)) {
+                        const beforeFooter = output.substring(0, output.indexOf('<!-- Footer -->'));
+                        const lastDivIndex = beforeFooter.lastIndexOf('</div>');
+                        
+                        if (lastDivIndex !== -1) {
+                            const beforeMainGridClose = output.substring(0, lastDivIndex);
+                            const afterMainGridClose = output.substring(lastDivIndex);
+                            output = beforeMainGridClose + inTheNewsHtmlToInsert + afterMainGridClose;
+                        } else {
+                            output = output.replace(mainGridClosePattern, inTheNewsHtmlToInsert + '$1$2');
+                        }
+                    }
+                }
+                
+                // Add gallery script for "In the News"
+                if (inTheNewsGalleryScript) {
+                    const hideBannerMarker = '// Hide on-page banner and footer';
+                    const hideBannerIndex = output.indexOf(hideBannerMarker);
+                    
+                    if (hideBannerIndex !== -1) {
+                        let bannerScriptStart = output.lastIndexOf('<script>', hideBannerIndex);
+                        if (bannerScriptStart === -1) {
+                            bannerScriptStart = output.lastIndexOf('<script', hideBannerIndex);
+                        }
+                        if (bannerScriptStart !== -1) {
+                            output = output.substring(0, bannerScriptStart) + inTheNewsGalleryScript + output.substring(bannerScriptStart);
+                        } else {
+                            output = output.substring(0, hideBannerIndex) + inTheNewsGalleryScript + output.substring(hideBannerIndex);
                         }
                     }
                 }
